@@ -5,11 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d0ce3ace-3bde-462f-80dd-9d6d73a382b7" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/scripts/FEA_run.m" beforeDir="false" afterPath="$PROJECT_DIR$/FEA-scripts/FEA_run.m" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/FEA_visualize.mlx" beforeDir="false" afterPath="$PROJECT_DIR$/FEA-scripts/FEA_visualize.mlx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/FEAfunctions.asv" beforeDir="false" afterPath="$PROJECT_DIR$/FEA-scripts/FEAfunctions.asv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/FEAfunctions.m" beforeDir="false" afterPath="$PROJECT_DIR$/FEA-scripts/FEAfunctions.m" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/mat2dict.py" beforeDir="false" afterPath="$PROJECT_DIR$/FEA-scripts/mat2dict.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/slicer-scripts/mandoline-py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -55,7 +52,7 @@
       <option name="presentableId" value="Default" />
       <updated>1667326824835</updated>
       <workItem from="1667326826875" duration="23000" />
-      <workItem from="1668454277742" duration="847000" />
+      <workItem from="1668454277742" duration="1303000" />
     </task>
     <servers />
   </component>
@@ -67,7 +64,19 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="master" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
           </value>
         </entry>
       </map>
