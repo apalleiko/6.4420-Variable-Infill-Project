@@ -60,18 +60,22 @@ classdef FEAfunctions
                 layerRanges=[layerRanges,maxs(3)];
             end
             layerCount = length(layerRanges);
-            layer.X = [];
-            layer.Y = [];
-            layer.stresses = [];
-            layers = repmat(layer,1,layerCount);
+            layer = py.dict(pyargs('X',[],'Y',[],'Z',[],'stresses',[]));
+%             layer.X = [];
+%             layer.Y = [];
+%             layer.stresses = [];
+%             layer.Z = [];
+            layers = repmat(layer,1,layerCount-1);
             figure
             for layerIdx = 1:layerCount-1
                 layerRange = [layerRanges(layerIdx), layerRanges(layerIdx+1)];
                 [layerX,layerY,layerStresses,Nb] = sliceLayer(obj,smodel,mesh,Rs,stressColors,layerRange,plotOn);
-                layers(layerIdx).X = layerX;
-                layers(layerIdx).Y = layerY;
-                layers(layerIdx).stresses = layerStresses;
+%                 layers(layerIdx).X = layerX;
+%                 layers(layerIdx).Y = layerY;
+%                 layers(layerIdx).stresses = layerStresses;
                 layerZ = zeros(length(layerX),1) + layerRanges(layerIdx);
+%                 layers(layerIdx).Z = layerZ;
+                update(layers(layerIdx),py.dict(pyargs('X',layerX,'Y',layerY,'Z',layerZ,'stresses',layerStresses)));
                 boundaryIdx = boundary(layerX,layerY);
                 scatter3(layerX,layerY,layerZ,20,stressColors(Nb,:),'filled')
                 hold on

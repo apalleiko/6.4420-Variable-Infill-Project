@@ -24,5 +24,7 @@ Vertexforces = [[]];
 figure(3)
 pdeplot3D(smodel,'ColorMapData',Rs.VonMisesStress,'Deformation',Rs.Displacement,'DeformationScaleFactor',100)
 %%
-layerHeight = 10;
+layerHeight = 20;
 layers = FEA.generateAllLayers(smodel,mesh,Rs,stressColors,layerHeight,false);
+%% 
+save('layers.mat','layers')

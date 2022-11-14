@@ -62,16 +62,18 @@ classdef FEAfunctions
             layerCount = length(layerRanges);
             layer.X = [];
             layer.Y = [];
+            layer.Z = [];
             layer.stresses = [];
-            layers = repmat(layer,1,layerCount);
+            layers = repmat(layer,1,layerCount-1);
             figure
             for layerIdx = 1:layerCount-1
                 layerRange = [layerRanges(layerIdx), layerRanges(layerIdx+1)];
                 [layerX,layerY,layerStresses,Nb] = sliceLayer(obj,smodel,mesh,Rs,stressColors,layerRange,plotOn);
+                layerZ = zeros(length(layerX),1) + layerRanges(layerIdx);
                 layers(layerIdx).X = layerX;
                 layers(layerIdx).Y = layerY;
+                layers(layerIdx).Z = layerZ;
                 layers(layerIdx).stresses = layerStresses;
-                layerZ = zeros(length(layerX),1) + layerRanges(layerIdx);
                 boundaryIdx = boundary(layerX,layerY);
                 scatter3(layerX,layerY,layerZ,20,stressColors(Nb,:),'filled')
                 hold on
