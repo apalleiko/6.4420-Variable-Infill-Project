@@ -5,7 +5,26 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d0ce3ace-3bde-462f-80dd-9d6d73a382b7" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/slicer-scripts/mandoline-py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/slicer-scripts/mandoline-py-master/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/slicer-scripts/mandoline-py-master/LICENSE" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/slicer-scripts/mandoline-py-master/README.rst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/slicer-scripts/mandoline-py-master/mandoline/TextThermometer.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/slicer-scripts/mandoline-py-master/mandoline/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/slicer-scripts/mandoline-py-master/mandoline/facet3d.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/slicer-scripts/mandoline-py-master/mandoline/float_fmt.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/slicer-scripts/mandoline-py-master/mandoline/geometry2d.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/slicer-scripts/mandoline-py-master/mandoline/line_segment3d.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/slicer-scripts/mandoline-py-master/mandoline/point3d.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/slicer-scripts/mandoline-py-master/mandoline/slicer.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/slicer-scripts/mandoline-py-master/mandoline/stl_data.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/slicer-scripts/mandoline-py-master/mandoline/vector.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/slicer-scripts/mandoline-py-master/setup.cfg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/slicer-scripts/mandoline-py-master/setup.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/slicer-scripts/mandoline-py-master/test_models/AlunarM506FanShroud.stl" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/slicer-scripts/mandoline-py-master/test_models/Ball_Bearing.A.3.STL" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/slicer-scripts/mandoline-py-master/test_models/cube.stl" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/slicer-scripts/mandoline-py-master/test_models/sphere.stl" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -38,8 +57,9 @@
 }</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="C:\Users\apall\Documents\MIT Docs\Semester 7 - Fall 2022\6.4420\6.4420-Variable-Infill-Project\slicer-scripts\mandoline-py" />
       <recent name="C:\Users\apall\Documents\MIT Docs\Semester 7 - Fall 2022\6.4420\6.4420-Variable-Infill-Project" />
+      <recent name="C:\Users\apall\Documents\MIT Docs\Semester 7 - Fall 2022\6.4420\6.4420-Variable-Infill-Project\" />
+      <recent name="C:\Users\apall\Documents\MIT Docs\Semester 7 - Fall 2022\6.4420\6.4420-Variable-Infill-Project\slicer-scripts\mandoline-py" />
     </key>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
@@ -52,7 +72,7 @@
       <updated>1667326824835</updated>
       <workItem from="1667326826875" duration="23000" />
       <workItem from="1668454277742" duration="1303000" />
-      <workItem from="1668456824795" duration="806000" />
+      <workItem from="1668456824795" duration="2148000" />
     </task>
     <servers />
   </component>
