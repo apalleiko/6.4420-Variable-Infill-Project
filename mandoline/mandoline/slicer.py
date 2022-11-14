@@ -8,6 +8,7 @@ import os.path
 import platform
 from collections import OrderedDict
 from appdirs import user_config_dir
+from mandoline.mat2dict import mat2dict # TODO Verify
 
 import mandoline.geometry2d as geom
 from .TextThermometer import TextThermometer
@@ -20,7 +21,8 @@ slicer_configs = OrderedDict([
         ('random_starts',     bool,   True, None,       "Enable randomizing of perimeter starts."),
         ('top_layers',        int,      3, (0, 10),     "Number of layers to print on the top side of the object."),
         ('bottom_layers',     int,      3, (0, 10),     "Number of layers to print on the bottom side of the object."),
-        ('infill_type',       list, 'Grid', ['Lines', 'Triangles', 'Grid', 'Hexagons'], "Pattern that the infill will be printed in."),
+        ('infill_type',       list, 'Grid', ['Lines', 'Triangles', 'Grid', 'Hexagons', 'Variable'], "Pattern that the infill will be printed in."),
+        ('stress_map',        str,   None, None,        "Path to a matlab stress mapping."),  # TODO: Correct Method?
         ('infill_density',    float,  30., (0., 100.),  "Infill density in percent."),
         ('infill_overlap',    float, 0.15, (0.0, 1.0),  "Amount, in mm that infill will overlap with perimeter extrusions."),
         ('feed_rate',         int,     60, (1, 300),    "Speed while extruding. (mm/s)"),
@@ -324,19 +326,6 @@ class Slicer(object):
             print("Launching slice viewer")
             self._display_paths()
 
-        # TODO: Enable multi-model loading/placement/rotation
-        # TODO: Verify models fit inside build volume.
-        # TODO: Interior solid infill perimeter paths
-        # TODO: Pathing type prioritization
-        # TODO: Optimize route paths
-        # TODO: Skip retraction for short motions
-        # TODO: Smooth top surfacing for non-flat surfaces
-        # TODO: G-Code custom startup/shutdown/toolchange scripts.
-        # TODO: G-Code flavors
-        # TODO: G-Code volumetric extrusion
-        # TODO: Relative E motions.
-        # TODO: Better Bridging
-
     ############################################################
 
     def _slicer_task_perimeters(self):
@@ -574,6 +563,11 @@ class Slicer(object):
                 elif infill_type == "Hexagons":
                     base_ang = 120 * (layer % 3)
                     lines = geom.make_infill_hexagons(bounds, base_ang, density, self.infill_width)
+                elif infill_type == "Variable":
+                    # TODO: Continue
+                    stress_map = mat2dict(self.conf['stress_map'])
+                    layer_stress = stress_map[layer]
+                    lines = geom.make_infill_variable(bounds, layer_stress, self.infill_width)
                 else:
                     lines = []
                 lines = geom.clip(lines, mask, subj_closed=False)
