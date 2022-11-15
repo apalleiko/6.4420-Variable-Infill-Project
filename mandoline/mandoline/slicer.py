@@ -8,7 +8,7 @@ import os.path
 import platform
 from collections import OrderedDict
 from appdirs import user_config_dir
-from mandoline.mat2dict import mat2dict # TODO Verify
+from mandoline.mat2dict import mat2dict  # TODO Verify
 
 import mandoline.geometry2d as geom
 from .TextThermometer import TextThermometer
@@ -22,7 +22,6 @@ slicer_configs = OrderedDict([
         ('top_layers',        int,      3, (0, 10),     "Number of layers to print on the top side of the object."),
         ('bottom_layers',     int,      3, (0, 10),     "Number of layers to print on the bottom side of the object."),
         ('infill_type',       list, 'Grid', ['Lines', 'Triangles', 'Grid', 'Hexagons', 'Variable'], "Pattern that the infill will be printed in."),
-        ('stress_map',        str,   None, None,        "Path to a matlab stress mapping."),  # TODO: Correct Method?
         ('infill_density',    float,  30., (0., 100.),  "Infill density in percent."),
         ('infill_overlap',    float, 0.15, (0.0, 1.0),  "Amount, in mm that infill will overlap with perimeter extrusions."),
         ('feed_rate',         int,     60, (1, 300),    "Speed while extruding. (mm/s)"),
@@ -565,7 +564,14 @@ class Slicer(object):
                     lines = geom.make_infill_hexagons(bounds, base_ang, density, self.infill_width)
                 elif infill_type == "Variable":
                     # TODO: Continue
-                    stress_map = mat2dict(self.conf['stress_map'])
+                    print('Variable Infill Given...')
+                    stress_path = input("Path to the stress map .mat file: ")
+                    while not os.path.isfile(stress_path):
+                        print('Invalid Stress Path given, please try again')
+                        stress_path = input("Path to the stress map .mat file: ")
+                    stress_map = mat2dict(stress_path)
+                    print("Stress Layers: ", len(stress_map))
+                    print("Slicer Layers: ", self.layers)
                     layer_stress = stress_map[layer]
                     lines = geom.make_infill_variable(bounds, layer_stress, self.infill_width)
                 else:

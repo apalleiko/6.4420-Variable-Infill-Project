@@ -5,7 +5,6 @@ import scipy.io
 
 def mat2dict(path):
     mat_contents = sp.io.loadmat(path)
-    print(mat_contents)
     layers = []
     for idx,layer in enumerate(mat_contents['layers'][0,:]):
         layers.append({'X':[float(i) for i in layer[0]],
@@ -17,7 +16,7 @@ def mat2dict(path):
 
 
 if __name__ == "__main__":
-    path = "/layers.mat"
+    path = "/cube_layers.mat"
     output = mat2dict(path)
 
 

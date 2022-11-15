@@ -5,12 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d0ce3ace-3bde-462f-80dd-9d6d73a382b7" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/mandoline/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/mandoline/mandoline/mat2dict.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FEA-scripts/mat2dict.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/mandoline/mandoline/geometry2d.py" beforeDir="false" afterPath="$PROJECT_DIR$/mandoline/mandoline/geometry2d.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FEA-scripts/FEA_run.m" beforeDir="false" afterPath="$PROJECT_DIR$/FEA-scripts/FEA_run.m" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mandoline/mandoline/mat2dict.py" beforeDir="false" afterPath="$PROJECT_DIR$/mandoline/mandoline/mat2dict.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mandoline/mandoline/slicer.py" beforeDir="false" afterPath="$PROJECT_DIR$/mandoline/mandoline/slicer.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -37,21 +34,26 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "last_opened_file_path": "C:/Users/apall/Documents/MIT Docs/Semester 7 - Fall 2022/6.4420/6.4420-Variable-Infill-Project",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "settings.editor.selected.configurable": "project.propVCSSupport.DirectoryMappings"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/apall/Documents/MIT Docs/Semester 7 - Fall 2022/6.4420/6.4420-Variable-Infill-Project/mandoline/test_models&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;project.propVCSSupport.DirectoryMappings&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\apall\Documents\MIT Docs\Semester 7 - Fall 2022\6.4420\6.4420-Variable-Infill-Project\mandoline\test_models" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\apall\Documents\MIT Docs\Semester 7 - Fall 2022\6.4420\6.4420-Variable-Infill-Project\mandoline\test_models" />
+      <recent name="C:\Users\apall\Documents\MIT Docs\Semester 7 - Fall 2022\6.4420\6.4420-Variable-Infill-Project\mandoline\mandoline" />
       <recent name="C:\Users\apall\Documents\MIT Docs\Semester 7 - Fall 2022\6.4420\6.4420-Variable-Infill-Project" />
       <recent name="C:\Users\apall\Documents\MIT Docs\Semester 7 - Fall 2022\6.4420\6.4420-Variable-Infill-Project\" />
       <recent name="C:\Users\apall\Documents\MIT Docs\Semester 7 - Fall 2022\6.4420\6.4420-Variable-Infill-Project\slicer-scripts\mandoline-py" />
@@ -68,7 +70,10 @@
       <workItem from="1667326826875" duration="23000" />
       <workItem from="1668454277742" duration="1303000" />
       <workItem from="1668456824795" duration="2148000" />
-      <workItem from="1668465132854" duration="4831000" />
+      <workItem from="1668465132854" duration="5711000" />
+      <workItem from="1668486038212" duration="594000" />
+      <workItem from="1668528599047" duration="1285000" />
+      <workItem from="1668537622304" duration="2603000" />
     </task>
     <servers />
   </component>
