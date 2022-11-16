@@ -6,9 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="d0ce3ace-3bde-462f-80dd-9d6d73a382b7" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FEA-scripts/FEA_run.m" beforeDir="false" afterPath="$PROJECT_DIR$/FEA-scripts/FEA_run.m" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mandoline/mandoline/mat2dict.py" beforeDir="false" afterPath="$PROJECT_DIR$/mandoline/mandoline/mat2dict.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mandoline/mandoline/slicer.py" beforeDir="false" afterPath="$PROJECT_DIR$/mandoline/mandoline/slicer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mandoline/mandoline/geometry2d.py" beforeDir="false" afterPath="$PROJECT_DIR$/mandoline/mandoline/geometry2d.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -73,7 +71,8 @@
       <workItem from="1668465132854" duration="5711000" />
       <workItem from="1668486038212" duration="594000" />
       <workItem from="1668528599047" duration="1285000" />
-      <workItem from="1668537622304" duration="2603000" />
+      <workItem from="1668537622304" duration="3023000" />
+      <workItem from="1668568094319" duration="737000" />
     </task>
     <servers />
   </component>

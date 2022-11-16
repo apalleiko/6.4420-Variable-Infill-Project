@@ -514,6 +514,18 @@ class Slicer(object):
 
         self.solid_infill = []
         self.sparse_infill = []
+
+        # TODO: Continue
+        if self.conf['infill_type'] == 'Variable':
+            print('Variable Infill Given...')
+            stress_path = input("Path to the stress map .mat file: ")
+            while not os.path.isfile(stress_path):
+                print('Invalid Stress Path given, please try again')
+                stress_path = input("Path to the stress map .mat file: ")
+            stress_map = mat2dict(stress_path)
+            print("Number of Stress Layers: ", len(stress_map))
+            print("Number of Slicer Layers: ", self.layers)
+
         for layer in range(self.layers):
             self.thermo.update(layer)
             # Solid Mask
@@ -544,6 +556,7 @@ class Slicer(object):
             # Sparse Infill
             sparse_infill = []
             infill_type = self.conf['infill_type']
+
             density = self.conf['infill_density'] / 100.0
             if density > 0.0:
                 if density >= 0.99:
@@ -564,14 +577,6 @@ class Slicer(object):
                     lines = geom.make_infill_hexagons(bounds, base_ang, density, self.infill_width)
                 elif infill_type == "Variable":
                     # TODO: Continue
-                    print('Variable Infill Given...')
-                    stress_path = input("Path to the stress map .mat file: ")
-                    while not os.path.isfile(stress_path):
-                        print('Invalid Stress Path given, please try again')
-                        stress_path = input("Path to the stress map .mat file: ")
-                    stress_map = mat2dict(stress_path)
-                    print("Stress Layers: ", len(stress_map))
-                    print("Slicer Layers: ", self.layers)
                     layer_stress = stress_map[layer]
                     lines = geom.make_infill_variable(bounds, layer_stress, self.infill_width)
                 else:

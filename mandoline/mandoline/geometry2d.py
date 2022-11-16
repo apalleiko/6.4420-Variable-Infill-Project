@@ -229,7 +229,7 @@ def make_infill_hexagons(rect, base_ang, density, ewidth):
 
 def make_infill_variable(rect, layer_stress, ewidth):
     # TODO
-    pass
+    raise(ValueError, "No Infill Pattern Implemented")
 
 
 # vim: expandtab tabstop=4 shiftwidth=4 softtabstop=4 nowrap
