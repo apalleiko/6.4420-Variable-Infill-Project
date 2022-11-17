@@ -238,15 +238,15 @@ def make_infill_variable(rect, layer_stress, ewidth):
 
     minx, miny, maxx, maxy = rect
     ori_T = np.array([[0, 1, 2, 3]])
-    # ori_P = np.array([[minx, miny, 0],
-    #          [maxx, miny, 0],
-    #          [maxx, maxy, 0],
-    #          [minx, maxy, 0]])
+    ori_P = np.array([[minx, miny, 0],
+             [maxx, miny, 0],
+             [maxx, maxy, 0],
+             [minx, maxy, 0]])
 
-    ori_P = np.array([[0, 0, 0],
-                      [5, 0, 0],
-                      [5, 5, 0],
-                      [0, 5, 0]])
+    # ori_P = np.array([[0, 0, 0],
+    #                   [5, 0, 0],
+    #                   [5, 5, 0],
+    #                   [0, 5, 0]])
 
     ori_mesh = msh.Mesh2D(elm=ori_T, vert=ori_P)
     refine_layer(0.1, 0.9, ori_mesh, layer_stress, ewidth)
@@ -285,7 +285,7 @@ def refine_layer(min_dense, max_dense, mesh, layer_stress, ewidth):
                 to_refine.append(quad)
 
         if to_refine:
-            new_mesh = non_conforming_refinement(mesh, to_refine)
+            new_mesh = msh.non_conforming_refinement(mesh, to_refine)
             return refine_layer(min_dense, max_dense, new_mesh, layer_stress, ewidth)
 
         return mesh
