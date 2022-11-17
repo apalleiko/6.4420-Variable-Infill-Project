@@ -230,8 +230,11 @@ def make_infill_hexagons(rect, base_ang, density, ewidth):
         out.append(path)
     return out
 
+# def point_in_elm()
 
 def make_infill_variable(rect, layer_stress, ewidth):
+
+
     minx, miny, maxx, maxy = rect
     ori_T = np.array([[0, 1, 2, 3]])
     ori_P = np.array([[minx, miny, 0],
@@ -240,10 +243,12 @@ def make_infill_variable(rect, layer_stress, ewidth):
              [minx, miny, 0]])
 
     ori_mesh = msh.Mesh2D(elm=ori_T, vert=ori_P)
-    refined_mesh = msh.refine_mesh(ori_mesh)
+    refined_mesh = msh.non_conforming_refinement(ori_mesh, [0])
+    refined_mesh = msh.non_conforming_refinement(refined_mesh, [0])
+    print(ori_mesh.elm, ori_mesh.vert)
     print(refined_mesh.elm, refined_mesh.vert)
-    # raise(ValueError, "No Infill Pattern Implemented")
+    raise(ValueError, "No Infill Pattern Implemented")
 
-# def process
+
 
 # vim: expandtab tabstop=4 shiftwidth=4 softtabstop=4 nowrap
