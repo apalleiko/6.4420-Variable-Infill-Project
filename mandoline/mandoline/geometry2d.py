@@ -237,10 +237,11 @@ def make_infill_variable(rect, layer_stress, ewidth):
              [maxx, maxy, 0],
              [minx, miny, 0]])
 
-    ori_mesh = msh.Mesh2D(elm=ori_T, vert=ori_P)
+    # ori_mesh = msh.Mesh2D(elm=ori_T, vert=ori_P)
+
 
     raise(ValueError, "No Infill Pattern Implemented")
 
-
+def process
 
 # vim: expandtab tabstop=4 shiftwidth=4 softtabstop=4 nowrap
