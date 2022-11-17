@@ -242,6 +242,6 @@ def make_infill_variable(rect, layer_stress, ewidth):
 
     raise(ValueError, "No Infill Pattern Implemented")
 
-def process
+# def process
 
 # vim: expandtab tabstop=4 shiftwidth=4 softtabstop=4 nowrap
