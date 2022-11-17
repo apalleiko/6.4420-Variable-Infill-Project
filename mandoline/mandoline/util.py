@@ -1,5 +1,354 @@
 import numpy as np
 
+from sympy import Rational, Symbol, integrate, sqrt
+#from sympy import Rational, Symbol
+#from sympy.integrals import integrate
+#from mpmath import sqrt
+from sympy.polys import Poly
+#from sympy.polys.polytools import Poly
+from sympy.matrices import Matrix
+#from sympy.matrices.matrices import Matrix
+# from src.pyutil import , unique
+from numpy import shape, array, vstack, hstack, mean, ones, arange, dot, rot90
+from numpy import column_stack, sign
+from numpy import sum as npsum
+from numpy import mgrid, tile
+from numpy.linalg import inv
+import copy as cpy
+
+def unique(a, by='', flag=False):
+    """Finds and returns unique elements, row, or columns in a 2D numpy array
+    @author Matt Ueckermann
+    @param a (\c array) array to be sorted
+    @param by (\c str): Takes arguments 'cols' to find unique colums
+        or 'rows to find unique rows. If unspecified or only unique elements
+        are returned
+    @param flag (\c bool): Set to True if the index vector 'I' of the
+        unique rows/columns and the reverse index map 'J' should be returned
+    @retval e: The array containing only unique elements
+    @retval I: The index such that a[I,:] = e (if by='rows') or a[:,I] = e (if by='cols')
+        That is, I is the unique, possibly permuted, row/column numbers of a.
+    @retval J: The index such that e[J,:] = a (if by='rows') or e[:,J] = a (if by='cols')
+        That is, J is the rows/columns of e needed to get back a.
+    @code
+    #Example usage:
+    >>> import pyutil as util
+    >>> import numpy as np
+    >>> a = np.array([[2,1,2],
+                      [2,1,2],
+                      [4,3,4],
+                      [2,1,2],
+                      [4,3,4]])
+    >>> b = unique(a)
+    >>> b
+    array([1, 2, 3, 4])
+    >>> c = unique(a, 'rows')
+    >>> c
+    array([[2, 1, 2],
+           [4, 3, 4]])
+    >>> d, I, J = unique(a, by='cols', flag=True)
+    >>> d
+    array([[1, 2],
+           [1, 2],
+           [3, 4],
+           [1, 2],
+           [3, 4]])
+    >>> I
+    array([1, 0])
+    >>> J
+    array([1, 0, 1])
+    @endcode
+    @see util.sortrows
+    """
+    if by == 'rows':
+        rows = a.shape[0]
+        b, I = sortrows(a, 0, True, True)
+        c = b[0:(rows - 1), :] != b[1:rows, :]
+        c = c.transpose()
+        d = np.ones((rows), dtype=bool)
+        d[1:rows] = c.any(0)
+        e = b[d, :]
+        J = np.cumsum(d, dtype=int) - 1
+        j = np.cumsum(d, dtype=int) - 1
+        J[I] = j
+        I = I[d]
+    elif by == 'cols':
+        e, I, J = unique(a.transpose(), 'rows', True)
+        e = e.transpose()
+    else:
+        e, I, J = np.unique(a, True, True)
+    if flag:
+        return e, I, J
+    else:
+        return e
+
+def sortrows(a, i=0, index_out=False, recurse=True):
+    """ Sorts array "a" by columns i
+    @author Matt Ueckermann
+    @param a (\c array) array to be sorted
+    (OPTIONAL)
+    @param i (\c int) column to be sorted by, taken as 0 by default
+    @param index_out (\c bool) return the index I such that a(I) = sortrows(a,i)
+    @param recurse  (\c bool) recursively sort by each of the columns. i.e.
+                    once column i is sort, we sort the smallest column number
+                    etc. True by default.
+    @retval a: The array 'a' sorted in descending order by column i
+    @retval I: The index such that a(I) = sortrows(a,i)
+    @code
+    #Example usage:
+    >>> a = array([[1, 2],
+                   [3, 1],
+                   [2, 3]])
+    >>> b = util.sortrows(a,0)
+    >>> b
+    array([[1, 2],
+           [2, 3],
+           [3, 1]])
+    c, I = util.sortrows(a,1,True)
+    >>> c
+    array([[3, 1],
+           [1, 2],
+           [2, 3]])
+    >>> I
+    array([1, 0, 2])
+    >>> a[I,:] - c
+    array([[0, 0],
+           [0, 0],
+           [0, 0]])
+    @endcode
+    @see unique
+    """
+    I = np.argsort(a[:, i])
+    a = a[I, :]
+    #We recursively call sortrows to make sure it is sorted best by every
+    #column
+    if recurse & (len(a[0]) > i + 1):
+        for b in np.unique(a[:, i]):
+            ids = a[:, i] == b
+            colids = list(range(i)) + list(range(i+1, len(a[0])))
+            a[np.ix_(ids, colids)], I2 = sortrows(a[np.ix_(ids, colids)], 0, True, True)
+            I[ids] = I[np.nonzero(ids)[0][I2]]
+
+    if index_out:
+        return a, I
+    else:
+        return a
+
+def int_el_pqr(pqr=[], element=0, dim=None, X=1):
+    """Calculates the integral of monomial basis for pre-defined elements
+    @param    pqr    Matrix containing the powers of the monomials, \f$x^p y^q z^r\f$.  If empty, only el_verts and ids_ed are returned (in that order).
+    @param    element   The number of the predefined element.
+    @param    dim    The dimension of the problem. Usually not necessary to
+                    specify this, but if you only want the master element
+                    vertices and face id's, this is useful.
+    @param    X         Maximum absolute value of master element coordinates.
+                        (Default value = 1)
+    @retval   int_pqr    Matrix of size (pqr_i x 1) containing the integral of
+                        the monomial over the element
+    @retval   int_pqr_ed Matrix of size (pqr_i x # ed) containing the integral of
+                        the monomial over the element edges
+    @retval   el_verts  List containing the coordinates of the vertices
+                        Labeled counter-clockwise from bottom to top
+    @retval   ids_ed  List containing the ids of the vertices
+                        Labeled counter-clockwise from bottom to top. So, edge
+                        2 has vertices el_verts[ed_ids[2]]
+    @verbatim
+    Exsiting elements:
+    element =
+        0: if dim = 1: A line [-X, X]
+                    2: A triangle [[-X,-X], [X,-X], [X,X]]
+                    3: A tetrahedral [[-X,-X,-X], [X,-X,-X], [X,X,-X], [X,-X,X]]
+        1: if dim = 1: GOTO element 0, dim = 1
+                    2: A square [[-X,-X], [X,-X], [X,X], [-X,X]]
+                    3: A cube [[-X,-X,-X], [X,-X,-X], [X,X,-X], [-X,X,-X],
+                               [-X,-X,X], [X,-X,X], [X,X,X], [-X,X,X]]
+        2: if dim = 1: GOTO element 0, dim = 1
+                    2: GOTO element 0, dim = 2
+                    3: A prism [[-X,-X,-X], [X,-X,-X], [X,X,-X],
+                               [-X,-X,X], [X,-X,X], [X,X,X]]
+    @endverbatim
+    @note for dim==3, triangular faces are numbered such that the x and y axes
+          are defined as (v0-v2) and (v1-v0) respectively. For square faces,
+          the x and y axes are defined by (v0-v3) and (v1-v0) respectively.
+    @note for dim==2, the direction of the edge is defined by (v1-v0)
+    @par If an element or dimension is chosen that is not coded, the function
+         returns pqr[:] = -1
+    @code
+    #Example to get only the master element vertices and edge ids
+    >>> verts, ids_ed = int_el_pqr(dims=2, element=0)
+    #Example to get the integrals also
+    >>> int_pqr, int_pqr_ed, vert, ids_ed = int_el_pqr(pqr, element=2)
+    @endcode
+    @see mk_pqr_coef
+    @callgraph
+    @callergraph
+    @author Matt Ueckermann
+    """
+
+    pqr_i = len(pqr[:])
+    if dim == None:
+        dim = len(pqr[0][:])
+
+
+    #Initializes int_pqr and int_pqr_ed to be the correct size
+    #int_pqr contains volume integral over element for (x^p)(y^q)(z^r)
+    int_pqr = [Rational(0) for i in range(pqr_i)]
+
+    #list int_pqr_ed contains edge integrals over each of the elements
+    #edges for the same monomial
+    #int_pqr_ed = [Rational(0) for i in range(pqr_i)]
+
+    #Loop over every monomial in the provided pqr matrix to calculate
+    #the integrals
+
+    #Set here the size of the maximal element coordinate value
+    XMAX = X
+
+    #The following is a large SWITCH statement, that determines which
+    #elements integration rules are appropriate.
+
+    #Use the first case always for 1D, and also for element==2 in 2D
+    if ((element == 0) | (dim == 1) | ((element == 2) & (dim == 2))):
+        #Define the sympy variables
+        x = Symbol("x")
+        y = Symbol("y")
+        z = Symbol("z")
+
+        # For a line [-XMAX, XMAX] if dim == 1
+        if dim == 1:
+            for i in range(pqr_i):
+                #Volume integral
+                int_pqr[i] = integrate(x**pqr[i][0], (x, -XMAX, XMAX))
+
+            #Volume vertices
+            el_verts = [[-XMAX], [XMAX]]
+
+            #Edge vertices
+            ed_verts = [[0], [1]]
+
+
+        # For a triangle [-XMAX,XMAX] [XMAX,-XMAX] [XMAX,XMAX] if dim == 2
+        elif dim == 2:
+            for i in range(pqr_i):
+                #Volume integral
+                int_pqr[i] = integrate(
+                         integrate(x**pqr[i][0] * y**pqr[i][1], \
+                         (y, -XMAX, x)), (x, -XMAX, XMAX))
+
+            #Volume vertices
+            el_verts = [[-XMAX, -XMAX], [XMAX, -XMAX], [XMAX, XMAX]]
+
+            #Edge vertices. (Outward facing normals from right-hand rule)
+            ed_verts = [[1, 2], \
+                        [2, 0], \
+                        [0, 1]]
+
+        # For a tetrahedral if dim ==3
+        elif dim == 3:
+            for i in range(pqr_i):
+                #Volume integral
+                int_pqr[i] = integrate(integrate(
+                         integrate(x**pqr[i][0] * y**pqr[i][1] * z**pqr[i][2],
+                         (z, -XMAX, x-y-1)),
+                         (y, -XMAX, x)),(x, -XMAX, XMAX))
+
+            #Volume vertices
+            el_verts = [[-XMAX, -XMAX, -XMAX], [XMAX, -XMAX, -XMAX], \
+                        [ XMAX, XMAX, -XMAX],  [ XMAX,-XMAX, XMAX]]
+
+            #Edge vertices. (Outward facing normals from right-hand rule)
+            #Also, the first vertex is at the 90deg(in general) corner of the
+            #edge, with v1-v0 defining the y-axis, and v0-v2 defining the z-axis
+            ed_verts = [[1, 2, 3], \
+                        [0, 3, 2], \
+                        [1, 3, 0], \
+                        [1, 0, 2]]
+
+    elif (element == 1):
+        #Define the sympy variables
+        x = Symbol("x")
+        y = Symbol("y")
+        z = Symbol("z")
+
+        # For a square [-XMAX,-XMAX] [XMAX,-XMAX] [XMAX,XMAX] [-XMAX,XMAX]
+        if dim == 2:
+            for i in range(pqr_i):
+                #Volume integral
+                int_pqr[i] = integrate(
+                     integrate(x**pqr[i][0] * y**pqr[i][1], (y, -XMAX, XMAX)),
+                     (x, -XMAX, XMAX))
+
+            #Volume vertices
+            el_verts = [[-XMAX, -XMAX], [XMAX, -XMAX], [XMAX, XMAX], \
+                        [-XMAX, XMAX]]
+
+            #Edge vertices. (Outward facing normals from right-hand rule)
+            ed_verts = [[1, 2], \
+                        [2, 3], \
+                        [3, 0], \
+                        [0, 1]]
+        #or a cube
+        elif dim == 3:
+            for i in range(pqr_i):
+                #Volume integral
+                int_pqr[i] = integrate(integrate(
+                     integrate(x**pqr[i][0] * y**pqr[i][1] * z**pqr[i][2],
+                     (y, -XMAX, XMAX)),
+                     (x, -XMAX, XMAX)),(z, -XMAX, XMAX))
+
+            #Volume vertices
+            el_verts = [[-XMAX, -XMAX, -XMAX], [XMAX, -XMAX, -XMAX], \
+                        [XMAX, XMAX, -XMAX], [-XMAX, XMAX, -XMAX],
+                        [-XMAX, -XMAX, XMAX],[XMAX, -XMAX, XMAX], \
+                        [XMAX, XMAX, XMAX], [-XMAX, XMAX, XMAX]]
+
+            #Edge vertices. (Outward facing normals from right-hand rule)
+            ed_verts = [[0, 3, 2, 1], \
+                        [4, 5, 6, 7], \
+                        [1, 2, 6, 5], \
+                        [3, 7, 6, 2], \
+                        [0, 4, 7, 3], \
+                        [0, 1, 5, 4]]
+
+    elif (element == 2):
+        #Define the sympy variables
+        x = Symbol("x")
+        y = Symbol("y")
+        z = Symbol("z")
+
+        # For a prism
+        if dim == 3:
+            for i in range(pqr_i):
+                #Volume integral
+                int_pqr[i] = integrate(integrate(
+                         integrate(x**pqr[i][0] * y**pqr[i][1] * z**pqr[i][2],
+                         (y, -XMAX, x)),
+                         (x, -XMAX, XMAX)),(z, -XMAX, XMAX))
+
+            #Volume vertices
+            el_verts = [[-XMAX, -XMAX, -XMAX], [XMAX, -XMAX, -XMAX], \
+                        [XMAX, XMAX, -XMAX],\
+                        [-XMAX, -XMAX, XMAX], [XMAX, -XMAX, XMAX], \
+                        [XMAX, XMAX, XMAX]]
+
+            #Edge vertices. (Outward facing normals from right-hand rule)
+            ed_verts = [[1, 0, 2], \
+                        [4, 5, 3], \
+                        [1, 2, 5, 4], \
+                        [0, 3, 5, 2], \
+                        [0, 1, 4, 3]]
+    else:
+        print('Unknown element/configuration requested. Element=', element, \
+        ' with dimension=', dim, ' is not supported')
+        el_verts = None
+        ed_verts = None
+
+    #Return outputs
+    if pqr_i > 0:
+        return int_pqr, array(el_verts), ed_verts
+    else:
+        return array(el_verts), ed_verts
+
 def simpvol2D(t, p):
     r"""Determine the volume of the 2D simplexes.
     @param t (\c int) Triangulation matrix
@@ -153,9 +502,9 @@ def connect_elm(elm, elm_type, dim, n_types=None):
     global vertices 18 and 19.
     @endverbatim
     """
-    from src.master.mk_basis import int_el_pqr
+
     if n_types == None:
-        n_types = util.unique(elm_type)
+        n_types = unique(elm_type)
 
     ids_ed = [None] * len(n_types)
     # Need to know both the maximum edge length and how many vertices in the edge with the most
@@ -213,7 +562,7 @@ def connect_elm(elm, elm_type, dim, n_types=None):
 
     #Now the fun part, we find the unique edges
     #CM: Why would they be non-unique? B/c each interior face listed twice
-    ed2edtmp, I1, J = util.unique(ed, 'rows', True)
+    ed2edtmp, I1, J = unique(ed, 'rows', True)
 
     #Initialize ed2ed matrix
     # CF: why 4 + max_ed_len?
@@ -249,15 +598,15 @@ def connect_elm(elm, elm_type, dim, n_types=None):
         ed2ed[i, 4:n_ved + 4] = elm[cur_elm, ids_ed[cur_elm_type][loc_ed]]
 
     #Sort boundaries at the bottom
-    ed2ed = np.flipud(util.sortrows(ed2ed, 2))
+    ed2ed = np.flipud(sortrows(ed2ed, 2))
 
     #Sort by element
     ids = ed2ed[:, 2] >= 0
     if any(ids):
-        ed2ed[ids, :] = util.sortrows(ed2ed[ids, :], 0)
+        ed2ed[ids, :] = sortrows(ed2ed[ids, :], 0)
     ids = ids == False
     if any(ids):
-        ed2ed[ids, :] = util.sortrows(ed2ed[ids, :], 0)
+        ed2ed[ids, :] = sortrows(ed2ed[ids, :], 0)
 
     #Build elm to elm matrix
     n_elm = len(elm) #get number of elements
