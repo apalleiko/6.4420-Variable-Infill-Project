@@ -582,9 +582,9 @@ class Slicer(object):
                     base_ang = 120 * (layer % 3)
                     lines = geom.make_infill_hexagons(bounds, base_ang, density, self.infill_width)
                 elif infill_type == "Variable":
-                    # TODO: Continue
+                    # TODO: Continue, add max density parameter
                     layer_stress = stress_map[layer]
-                    lines = geom.make_infill_variable(bounds, layer_stress, self.infill_width)
+                    lines = geom.make_infill_variable(bounds, layer_stress, self.infill_width, density, 0.9)
                 else:
                     lines = []
                 lines = geom.clip(lines, mask, subj_closed=False)

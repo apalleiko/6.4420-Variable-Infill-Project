@@ -233,9 +233,7 @@ def make_infill_hexagons(rect, base_ang, density, ewidth):
 
 # def point_in_elm()
 
-def make_infill_variable(rect, layer_stress, ewidth):
-
-
+def make_infill_variable(rect, layer_stress, ewidth, min_dense, max_dense):
     minx, miny, maxx, maxy = rect
     ori_T = np.array([[0, 1, 2, 3]])
     ori_P = np.array([[minx, miny, 0],
@@ -249,10 +247,9 @@ def make_infill_variable(rect, layer_stress, ewidth):
     #                   [0, 5, 0]])
 
     ori_mesh = msh.Mesh2D(elm=ori_T, vert=ori_P)
-    refine_mesh = refine_layer(0.1, 0.9, ori_mesh, layer_stress, ewidth)
-    sys.exit(-1)
-    # raise(ValueError, "No Infill Pattern Implemented")
+    refined_mesh = refine_layer(min_dense, max_dense, ori_mesh, layer_stress, ewidth)
 
+    sys.exit(-1)
 
 def refine_layer(min_dense, max_dense, mesh, layer_stress, ewidth):
     T, V = np.copy(mesh.elm), np.copy(mesh.vert)
