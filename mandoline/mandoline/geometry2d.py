@@ -236,10 +236,18 @@ def make_infill_hexagons(rect, base_ang, density, ewidth):
 def make_infill_variable(rect, layer_stress, ewidth, min_dense, max_dense):
     minx, miny, maxx, maxy = rect
     ori_T = np.array([[0, 1, 2, 3]])
-    ori_P = np.array([[minx, miny, 0],
-             [maxx, miny, 0],
-             [maxx, maxy, 0],
-             [minx, maxy, 0]])
+    # ori_P = np.array([[minx, miny, 0],
+    #          [maxx, miny, 0],
+    #          [maxx, maxy, 0],
+    #          [minx, maxy, 0]])
+
+    ori_P = np.array([[-100, -100, 0],
+                      [100, -100, 0],
+                      [100, 100, 0],
+                      [-100, 100, 0]])
+
+    layer_stress = {'coords':np.array([[-50, 50, 0], [50, 50, 0], [-50,  -50, 0],  [50, -50, 0]]), 'stress':[0.9, 0.1, 0.5, 0.73]}
+
 
     # ori_P = np.array([[0, 0, 0],
     #                   [5, 0, 0],
@@ -248,6 +256,7 @@ def make_infill_variable(rect, layer_stress, ewidth, min_dense, max_dense):
 
     ori_mesh = msh.Mesh2D(elm=ori_T, vert=ori_P)
     refined_mesh = refine_layer(min_dense, max_dense, ori_mesh, layer_stress, ewidth)
+    print(refined_mesh.elm, refined_mesh.vert)
 
     sys.exit(-1)
 
@@ -270,7 +279,7 @@ def refine_layer(min_dense, max_dense, mesh, layer_stress, ewidth):
 
         # Refine quad too large of a distance between points
         if any([maxx-minx > max_sp, maxy-miny > max_sp]):
-            to_refine.append(quad)
+            to_refine.append(i)
         else:
             # Get the acceptable normalized stress threshold
             density = space2density(maxx - minx, ewidth)
@@ -279,7 +288,7 @@ def refine_layer(min_dense, max_dense, mesh, layer_stress, ewidth):
             # Sample the stress, and refine if it is too big
             max_stress = sample_stress(layer_stress, (minx, miny, maxx, maxy))
             if max_stress > stress_accept:
-                to_refine.append(quad)
+                to_refine.append(i)
 
         if to_refine:
             new_mesh = msh.non_conforming_refinement(mesh, to_refine)
