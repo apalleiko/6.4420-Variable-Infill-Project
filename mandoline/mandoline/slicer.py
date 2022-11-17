@@ -6,9 +6,11 @@ import time
 import random
 import os.path
 import platform
+import numpy as np
 from collections import OrderedDict
 from appdirs import user_config_dir
 from mandoline.mat2dict import mat2dict  # TODO Verify
+from mandoline.fea import fea
 
 import mandoline.geometry2d as geom
 from .TextThermometer import TextThermometer
@@ -133,7 +135,8 @@ slicer_configs = OrderedDict([
 
 
 class Slicer(object):
-    def __init__(self, models, **kwargs):
+    def __init__(self, models, fea_path, **kwargs):
+        self.fea_path = fea_path
         self.models = models
         self.conf = {}
         self.conf_metadata = {}
@@ -286,6 +289,9 @@ class Slicer(object):
         self.infill_width = infl_nozl_d * self.extrusion_ratio
         self.support_width = supp_nozl_d * self.extrusion_ratio
         for model in self.models:
+            if self.fea_path:
+                fea_results = fea(self.fea_path)
+                fea_results.center_with_slicer([self.center_point[0], self.center_point[1], (max(fea_results.zs)-min(fea_results.zs))/2.0])
             model.center( (self.center_point[0], self.center_point[1], (model.points.maxz-model.points.minz)/2.0) )
             model.assign_layers(self.layer_h)
         height = max([model.points.maxz - model.points.minz for model in self.models])

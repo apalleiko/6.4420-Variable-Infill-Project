@@ -66,18 +66,31 @@ classdef FEAfunctions
             layer.stresses = [];
             layers = repmat(layer,1,layerCount-1);
             figure
+            pastStressColors = [];
             for layerIdx = 1:layerCount-1
                 layerRange = [layerRanges(layerIdx), layerRanges(layerIdx+1)];
                 [layerX,layerY,layerStresses,Nb] = sliceLayer(obj,smodel,mesh,Rs,stressColors,layerRange,plotOn);
-                layerZ = zeros(length(layerX),1) + layerRanges(layerIdx);
-                layers(layerIdx).X = layerX;
-                layers(layerIdx).Y = layerY;
-                layers(layerIdx).Z = layerZ;
-                layers(layerIdx).stresses = layerStresses;
-                boundaryIdx = boundary(layerX,layerY);
-                scatter3(layerX,layerY,layerZ,20,stressColors(Nb,:),'filled')
+%                 TODO fix when slice range is empty. need to interpolate
+%                 above and below
+                if isempty(layerX)
+                    layers(layerIdx).X = layers(layerIdx-1).X;
+                    layers(layerIdx).Y = layers(layerIdx-1).Y;
+                    layers(layerIdx).Z = layers(layerIdx-1).Z;
+                    layers(layerIdx).stresses = layers(layerIdx-1).stresses;
+                    cur_stress_colors = pastStressColors;
+                else
+                    layerZ = zeros(length(layerX),1) + layerRanges(layerIdx);
+                    layers(layerIdx).X = layerX;
+                    layers(layerIdx).Y = layerY;
+                    layers(layerIdx).Z = layerZ;
+                    layers(layerIdx).stresses = layerStresses;
+                    cur_stress_colors = stressColors(Nb,:);
+                    pastStressColors = cur_stress_colors;
+                end
+                boundaryIdx = boundary(layers(layerIdx).X,layers(layerIdx).Y);
+                scatter3(layers(layerIdx).X,layers(layerIdx).Y,layers(layerIdx).Z,20,cur_stress_colors,'filled')
                 hold on
-                plot3(layerX(boundaryIdx),layerY(boundaryIdx),layerZ(boundaryIdx),'-k','LineWidth',3)
+                plot3(layers(layerIdx).X(boundaryIdx),layers(layerIdx).Y(boundaryIdx),layers(layerIdx).Z(boundaryIdx),'-k','LineWidth',3)
                 hold on
             end
             hold off
