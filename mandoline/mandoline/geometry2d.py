@@ -249,7 +249,7 @@ def make_infill_variable(rect, layer_stress, ewidth):
     #                   [0, 5, 0]])
 
     ori_mesh = msh.Mesh2D(elm=ori_T, vert=ori_P)
-    refine_layer(0.1, 0.9, ori_mesh, layer_stress, ewidth)
+    refine_mesh = refine_layer(0.1, 0.9, ori_mesh, layer_stress, ewidth)
     sys.exit(-1)
     # raise(ValueError, "No Infill Pattern Implemented")
 
