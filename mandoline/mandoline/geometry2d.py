@@ -1,8 +1,10 @@
 import math
 
+import numpy as np
+
 import pyclipper
 
-# import mesh as msh
+import mandoline.mesh as msh
 
 
 SCALING_FACTOR = 1000
@@ -230,7 +232,7 @@ def make_infill_hexagons(rect, base_ang, density, ewidth):
 
 
 def make_infill_variable(rect, layer_stress, ewidth):
-    (minx, miny, maxx, maxy)
+    minx, miny, maxx, maxy = rect
     ori_T = np.array([0, 1, 2, 3])
     ori_P = np.array([[minx, miny, 0],
              [maxx, miny, 0],
@@ -238,9 +240,9 @@ def make_infill_variable(rect, layer_stress, ewidth):
              [minx, miny, 0]])
 
     ori_mesh = msh.Mesh2D(elm=ori_T, vert=ori_P)
-
-
-    raise(ValueError, "No Infill Pattern Implemented")
+    refined_mesh = msh.refine_mesh(ori_mesh)
+    print(refined_mesh.elm, refined_mesh.vert)
+    # raise(ValueError, "No Infill Pattern Implemented")
 
 # def process
 

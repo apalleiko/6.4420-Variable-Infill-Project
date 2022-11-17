@@ -1,13 +1,12 @@
 import numpy as np
-import src.pyutil as util
-import code, pdb
-import src.msh.util as mshu
 
+
+import mandoline.util as mshu
 import logging
 
 logger = logging.getLogger(__name__)
 
-from src.msh.util import fix, simpvol2D, connect_elm, connect_elm2ed
+from mandoline.util import fix, simpvol2D, connect_elm, connect_elm2ed
 # import msh.plot as plt
 import copy
 
