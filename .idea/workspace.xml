@@ -4,10 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d0ce3ace-3bde-462f-80dd-9d6d73a382b7" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mandoline/mandoline/geometry2d.py" beforeDir="false" afterPath="$PROJECT_DIR$/mandoline/mandoline/geometry2d.py" afterDir="false" />
-    </list>
+    <list default="true" id="d0ce3ace-3bde-462f-80dd-9d6d73a382b7" name="Changes" comment="testing new changes" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -66,6 +63,21 @@
       <workItem from="1668537622304" duration="3023000" />
       <workItem from="1668568094319" duration="737000" />
     </task>
+    <task id="LOCAL-00001" summary="testing new changes">
+      <created>1668656260540</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1668656260541</updated>
+    </task>
+    <task id="LOCAL-00002" summary="testing new changes">
+      <created>1668656426211</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1668656426211</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -98,5 +110,7 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/slicer-scripts/mandoline-py" />
     </ignored-roots>
+    <MESSAGE value="testing new changes" />
+    <option name="LAST_COMMIT_MESSAGE" value="testing new changes" />
   </component>
 </project>
