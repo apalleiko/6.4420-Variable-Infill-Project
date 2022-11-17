@@ -1,4 +1,5 @@
 import math
+import sys
 
 import numpy as np
 
@@ -230,25 +231,82 @@ def make_infill_hexagons(rect, base_ang, density, ewidth):
         out.append(path)
     return out
 
-# def point_in_elm()
 
 def make_infill_variable(rect, layer_stress, ewidth):
-
-
     minx, miny, maxx, maxy = rect
     ori_T = np.array([[0, 1, 2, 3]])
-    ori_P = np.array([[minx, miny, 0],
-             [maxx, miny, 0],
-             [maxx, maxy, 0],
-             [minx, miny, 0]])
+    # ori_P = np.array([[minx, miny, 0],
+    #          [maxx, miny, 0],
+    #          [maxx, maxy, 0],
+    #          [minx, maxy, 0]])
+
+    ori_P = np.array([[0, 0, 0],
+                      [5, 0, 0],
+                      [5, 5, 0],
+                      [0, 5, 0]])
 
     ori_mesh = msh.Mesh2D(elm=ori_T, vert=ori_P)
-    refined_mesh = msh.non_conforming_refinement(ori_mesh, [0])
-    refined_mesh = msh.non_conforming_refinement(refined_mesh, [0])
-    print(ori_mesh.elm, ori_mesh.vert)
-    print(refined_mesh.elm, refined_mesh.vert)
-    raise(ValueError, "No Infill Pattern Implemented")
+    refine_layer(0.1, 0.9, ori_mesh, layer_stress, ewidth)
+    sys.exit(-1)
+    # raise(ValueError, "No Infill Pattern Implemented")
 
 
+def refine_layer(min_dense, max_dense, mesh, layer_stress, ewidth):
+    T, V = np.copy(mesh.elm), np.copy(mesh.vert)
+    to_refine = []
+
+    min_sp = density2space(max_dense, ewidth)
+    max_sp = density2space(min_dense, ewidth)
+
+    # Iterate through each quad element in the mesh
+    for i in range(T.shape[0]):
+        quad = T[i, :]
+
+        # Get the x and y points for this quad
+        x_points = [v[0] for v in [V[i] for i in quad]]
+        y_points = [v[1] for v in [V[i] for i in quad]]
+        maxx, minx = max(x_points), min(x_points)
+        maxy, miny = max(y_points), min(y_points)
+
+        # Refine quad too large of a distance between points
+        if any([maxx-minx > max_sp, maxy-miny > max_sp]):
+            to_refine.append(quad)
+        else:
+            # Get the acceptable normalized stress threshold
+            density = space2density(maxx - minx, ewidth)
+            stress_accept = (density-min_dense)/(max_dense-min_dense)
+
+            # Sample the stress, and refine if it is too big
+            max_stress = sample_stress(layer_stress, (minx, miny, maxx, maxy))
+            if max_stress > stress_accept:
+                to_refine.append(quad)
+
+        if to_refine:
+            new_mesh = non_conforming_refinement(mesh, to_refine)
+            return refine_layer(min_dense, max_dense, new_mesh, layer_stress, ewidth)
+
+        return mesh
+
+
+def sample_stress(layer_stress, rect):
+    "Return max stress in a given rectangle of a stress layer"
+    minx, miny, maxx, maxy = rect
+    max_stress = 0
+
+    for i, coords in enumerate(layer_stress['coords']):
+        x, y = coords[0], coords[1]
+        n_stress = layer_stress['stress'][i]
+        if minx <= x <= maxx and miny <= y <= maxy and n_stress > max_stress:
+            max_stress = n_stress
+
+    return max_stress
+
+
+def space2density(spacing, ewidth):
+    return 2.0 * ewidth / spacing
+
+
+def density2space(density, ewidth):
+    return 2.0 * ewidth / density
 
 # vim: expandtab tabstop=4 shiftwidth=4 softtabstop=4 nowrap
