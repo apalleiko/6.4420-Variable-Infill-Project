@@ -75,5 +75,6 @@ setup(
         'pyquaternion>=0.9.5',
         'pyclipper>=1.1.0',
         'appdirs>=1.4.3',
+        'sympy'
     ],
 )
