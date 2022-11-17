@@ -230,14 +230,14 @@ def make_infill_hexagons(rect, base_ang, density, ewidth):
 
 
 def make_infill_variable(rect, layer_stress, ewidth):
-    # (minx, miny, maxx, maxy)
-    # ori_T = np.array([0, 1, 2, 3])
-    # ori_P = np.array([[minx, miny, 0],
-    #          [maxx, miny, 0],
-    #          [maxx, maxy, 0],
-    #          [minx, miny, 0]])
+    (minx, miny, maxx, maxy)
+    ori_T = np.array([0, 1, 2, 3])
+    ori_P = np.array([[minx, miny, 0],
+             [maxx, miny, 0],
+             [maxx, maxy, 0],
+             [minx, miny, 0]])
 
-    # ori_mesh = msh.Mesh2D(elm=ori_T, vert=ori_P)
+    ori_mesh = msh.Mesh2D(elm=ori_T, vert=ori_P)
 
 
     raise(ValueError, "No Infill Pattern Implemented")
