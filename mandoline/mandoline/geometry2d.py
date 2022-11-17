@@ -317,6 +317,5 @@ def space2density(spacing, ewidth):
 
 def density2space(density, ewidth):
     return 2.0 * ewidth / density
->>>>>>> 449d17c... Recursive refinement
 
 # vim: expandtab tabstop=4 shiftwidth=4 softtabstop=4 nowrap
