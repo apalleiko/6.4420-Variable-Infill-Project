@@ -713,6 +713,39 @@ def find_longest_edge_verts_tri(tri_P):
         if dist[i] == longest:
             return verts[i]
 
+def non_conforming_refinement(mesh, elements_to_refine):
+    T_ori, P_ori = np.copy(mesh.elm), np.copy(mesh.vert)
+    p_list = list(P_ori)
+
+    total_refined = 0
+
+    ref_T, new_P = list(T_ori), [P_ori, ]
+    current_mesh_verts = len(P_ori)
+    for index in elements_to_refine:
+        new_index = index - total_refined
+        conn = ref_T[new_index]
+
+        quad_verts = P_ori[conn, :]
+
+        # create new vertices
+        # import pdb; pdb.set_trace()
+        new_verts = refine_quad_p(quad_verts)[4:]
+        new_P.append(new_verts)
+
+        # create new connectivity for this triangle
+        new_conn = refined_quad_connectivity(current_mesh_verts, conn)
+        ref_T.append(new_conn)
+
+        # update mesh vertices
+        current_mesh_verts += 5
+
+        del ref_T[new_index]
+        total_refined += 1
+
+    # create the new T,P arrays
+    ref_P, ref_T = np.vstack(new_P), np.vstack(ref_T)
+
+    return Mesh2D(elm=ref_T, vert=ref_P)
 
 def conforming_refinement(mesh, elements_to_refine):
     """
@@ -739,6 +772,102 @@ def conforming_refinement(mesh, elements_to_refine):
     # stack the list into two single arrays to finish things up
 
     return T_refined, P_refined
+
+def refine_mesh_with_split(tri_T, P, refine_indices):
+    """takes in T and P arrays, and boolean array of tri to refine; returns refined T and P
+    @param P ndarray, mesh.verts, constains all mesh points (tri and quad)
+    @param tri_T  the connectivity array of all mesh tris (ntris, 4)
+    @param bool_array a list of indices for refinement
+    """
+    ref_T, ref_P, tri_T = list(tri_T), list(P), list(tri_T)
+    current_mesh_verts = len(ref_P)
+    total_refined = 0
+    collateral = []
+
+    # iterate through elements to be refined
+    for index in sorted(refine_indices):
+        new_index = index - total_refined
+
+        # set up quad verts and find the verts
+        conn = ref_T[new_index]
+        tri_verts = list()
+        for i in conn[:3]:
+            tri_verts.append(ref_P[i])
+
+
+        split_index = 0
+        similar_verts = []
+        for vert in range(len(conn[:3])):
+            if vert not in longest_edge_indices:
+                split_index = vert
+            else:
+                similar_verts.append(conn[vert])
+        split_vertex = conn[split_index]
+
+        # create new vertex
+        new_vert = split_triangle(tri_verts, split_index)
+        ref_P.append(new_vert)
+
+        # create new connectivity for split triangle
+        new_conn = list(split_tri_connectivity(current_mesh_verts, conn, split_index))
+        ref_T.append(new_conn[0])
+        ref_T.append(new_conn[1])
+
+        # split connected triangle along same vertice, if it exists
+
+        # first find opposite triangle (if it exists), then opposite vertex
+        opp_tri = list()
+        opp_tri_bool = False
+        opp_tri_index = 0
+        for i in range(len(ref_T)):
+            tri = list(ref_T[i])[:3]
+            if similar_verts[0] in tri and similar_verts[1] in tri and split_vertex not in tri:
+                opp_tri = list(ref_T[i])
+                opp_tri_bool = True
+                opp_tri_index = i
+                break
+        if opp_tri_bool:
+            opp_split_index = 0
+            for i, vert in enumerate(opp_tri[:3]):
+                if vert not in similar_verts:
+                    opp_split_index = i
+
+                    # create new connectivity for opposite triangle (vertex already added to P)
+            opp_new_conn = list(split_tri_connectivity(current_mesh_verts, opp_tri, opp_split_index))
+            ref_T.append(opp_new_conn[0])
+            ref_T.append(opp_new_conn[1])
+
+            #             import pdb; pdb.set_trace()
+            # delete old connectivities
+            if opp_tri_index > new_index:
+                del ref_T[opp_tri_index]
+                del ref_T[new_index]
+            else:
+                del ref_T[new_index]
+                del ref_T[opp_tri_index]
+
+            # determine if oposing triangle was prerefined or not
+            prerefined_tri = False
+            for ori_tri in tri_T:
+                if opp_tri[0] == ori_tri[0] and opp_tri[1] == ori_tri[1] and opp_tri[2] == ori_tri[2]:
+                    prerefined_tri == True
+                    break
+            if prerefined_tri:
+                total_refined += 2
+            else:
+                total_refined += 1
+
+        else:
+            #             import pdb; pdb.set_trace()
+            del ref_T[new_index]
+            total_refined += 1
+
+        # update mesh vertices
+        current_mesh_verts += 1
+
+    # create the new T,P arrays
+    ref_P, ref_T = np.vstack(ref_P), np.vstack(ref_T)
+    return ref_T, ref_P
 
 
 def refine_mesh_with_split(tri_T, P, refine_indices):
