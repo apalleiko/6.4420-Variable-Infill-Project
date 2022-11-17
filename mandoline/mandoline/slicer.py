@@ -13,7 +13,7 @@ from mandoline.mat2dict import mat2dict  # TODO Verify
 from mandoline.fea import fea
 
 import mandoline.geometry2d as geom
-from .TextThermometer import TextThermometer
+from TextThermometer import TextThermometer
 
 
 slicer_configs = OrderedDict([
