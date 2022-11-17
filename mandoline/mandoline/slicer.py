@@ -11,7 +11,7 @@ from appdirs import user_config_dir
 from mandoline.mat2dict import mat2dict  # TODO Verify
 
 import mandoline.geometry2d as geom
-from .TextThermometer import TextThermometer
+from TextThermometer import TextThermometer
 
 
 slicer_configs = OrderedDict([
