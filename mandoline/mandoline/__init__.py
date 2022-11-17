@@ -10,6 +10,8 @@ from mandoline.slicer import Slicer
 
 def main():
     parser = argparse.ArgumentParser(prog='myprogram')
+
+    parser.add_argument('--fea', help='Input FEA results filename.')
     parser.add_argument('-o', '--outfile',
                         help='Slices STL and write GCode to file.')
     parser.add_argument('-n', '--no-validation', action="store_true",
@@ -50,6 +52,7 @@ def main():
     args = parser.parse_args()
 
     stl = StlData()
+    fea_path = False
     if args.infile:
         stl.read_file(args.infile)
         if args.verbose:
@@ -69,7 +72,10 @@ def main():
             if not manifold:
                 sys.exit(-1)
 
-    slicer = Slicer([stl])
+    if args.fea:
+        fea_path = args.fea
+
+    slicer = Slicer([stl],fea_path)
 
     slicer.load_configs()
     if args.set_option:
@@ -104,6 +110,9 @@ def main():
         else:
             outfile = os.path.splitext(args.infile)[0] + ".gcode"
         slicer.slice_to_file(outfile, showgui=args.gui_display)
+
+    if args.fea:
+        print(args.fea)
 
     sys.exit(0)
 
