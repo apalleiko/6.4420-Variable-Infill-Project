@@ -721,8 +721,10 @@ def non_conforming_refinement(mesh, elements_to_refine):
 
     ref_T, new_P = list(T_ori), [P_ori, ]
     current_mesh_verts = len(P_ori)
+
     for index in elements_to_refine:
         new_index = index - total_refined
+        # import pdb; pdb.set_trace()
         conn = ref_T[new_index]
 
         quad_verts = P_ori[conn, :]
