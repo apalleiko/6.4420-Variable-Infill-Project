@@ -233,6 +233,7 @@ def make_infill_hexagons(rect, base_ang, density, ewidth):
 
 # def point_in_elm()
 
+
 def make_infill_variable(rect, layer_stress, ewidth, min_dense, max_dense):
     minx, miny, maxx, maxy = rect
     ori_T = np.array([[0, 1, 2, 3]])
@@ -246,7 +247,11 @@ def make_infill_variable(rect, layer_stress, ewidth, min_dense, max_dense):
                       [100, 100, 0],
                       [-100, 100, 0]])
 
-    layer_stress = {'coords':np.array([[-50, 50, 0], [50, 50, 0], [-50,  -50, 0],  [50, -50, 0]]), 'stress':[0.9, 0.1, 0.5, 0.73]}
+    layer_stress = {'coords':np.array([[-50, 50, 0],
+                                       [50, 50, 0],
+                                       [-50,  -50, 0],
+                                       [50, -50, 0]]),
+                    'stress':[0.9, 0.1, 0.5, 0.73]}
 
 
     # ori_P = np.array([[0, 0, 0],
