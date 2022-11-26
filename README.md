@@ -13,4 +13,4 @@ Andrew Palleiko, Andrew Johnson, Dylan Ryan
 - navigate to mandoline directory
 - Enter mandoline <stl path> --fea
 - stl file must be in stl_files folder
-- output of matlab FEA scripts will land in fea_output.mat, and fea python class will handle conversion to python friendly data structure
+- output of matlab FEA scripts will land in fea_output.mat, and fea python class will handle conversion to python-friendly data structure
