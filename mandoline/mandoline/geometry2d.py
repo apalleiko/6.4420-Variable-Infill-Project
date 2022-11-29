@@ -296,8 +296,11 @@ def refine_layer(min_dense, max_dense, mesh, layer_stress, ewidth):
         maxx, minx = max(x_points), min(x_points)
         maxy, miny = max(y_points), min(y_points)
 
-        # Refine quad too large of a distance between points
-        if any([maxx-minx > max_sp, maxy-miny > max_sp]):
+        # Skip if refining would bring below min spacing
+        if any([(maxx-minx)/2 < min_sp, (maxy-miny)/2 < min_sp]):
+            pass
+        # refine quad if too large of a distance between points
+        elif any([maxx-minx > max_sp, maxy-miny > max_sp]):
             to_refine.append(i)
         else:
             # Get the acceptable normalized stress threshold
