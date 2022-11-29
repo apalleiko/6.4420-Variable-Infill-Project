@@ -3,7 +3,7 @@ close all
 %%
 FEA = FEAfunctions;
 %%
-smodel = FEA.pdeModel('./cube.stl');
+smodel = FEA.pdeModel('../mandoline/test_models/cube.stl');
 figure(1)
 pdegplot(smodel,'VertexLabels','on','FaceLabels','on', 'FaceAlpha',.75)
 %%
@@ -26,4 +26,4 @@ pdeplot3D(smodel,'ColorMapData',Rs.VonMisesStress,'Deformation',Rs.Displacement,
 layerHeight = 0.2;
 layers = FEA.generateAllLayers(smodel,mesh,Rs,stressColors,layerHeight,false);
 %% 
-save('./mandoline/test_models/cube_layers.mat','layers')
+save('../mandoline/test_models/cube_layers.mat','layers')

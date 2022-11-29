@@ -237,31 +237,25 @@ def make_infill_hexagons(rect, base_ang, density, ewidth):
 def make_infill_variable(rect, layer_stress, ewidth, min_dense, max_dense):
     minx, miny, maxx, maxy = rect
     ori_T = np.array([[0, 1, 2, 3]])
-    # ori_P = np.array([[minx, miny, 0],
-    #          [maxx, miny, 0],
-    #          [maxx, maxy, 0],
-    #          [minx, maxy, 0]])
+    ori_P = np.array([[minx, miny, 0],
+             [maxx, miny, 0],
+             [maxx, maxy, 0],
+             [minx, maxy, 0]])
 
-    ori_P = np.array([[-100, -100, 0],
-                      [100, -100, 0],
-                      [100, 100, 0],
-                      [-100, 100, 0]])
+    # ori_P = np.array([[-100, -100, 0],
+    #                   [100, -100, 0],
+    #                   [100, 100, 0],
+    #                   [-100, 100, 0]])
 
-    layer_stress = {'coords':np.array([[-50, 50, 0],
-                                       [50, 50, 0],
-                                       [-50,  -50, 0],
-                                       [50, -50, 0]]),
-                    'stress':[0.9, 0.1, 0.5, 0.73]}
-
-
-    # ori_P = np.array([[0, 0, 0],
-    #                   [5, 0, 0],
-    #                   [5, 5, 0],
-    #                   [0, 5, 0]])
+    # layer_stress = {'coords':np.array([[-50, 50, 0],
+    #                                    [50, 50, 0],
+    #                                    [-50,  -50, 0],
+    #                                    [50, -50, 0]]),
+    #                 'stress':[0.9, 0.1, 0.5, 0.73]}
 
     ori_mesh = msh.Mesh2D(elm=ori_T, vert=ori_P)
     refined_mesh = refine_layer(min_dense, max_dense, ori_mesh, layer_stress, ewidth)
-    print(refined_mesh.elm, refined_mesh.vert)
+    # print(refined_mesh.elm, refined_mesh.vert)
     out = []
     line_pairs = [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
     for quad in refined_mesh.elm:
@@ -322,7 +316,7 @@ def sample_stress(layer_stress, rect):
 
     for i, coords in enumerate(layer_stress['coords']):
         x, y = coords[0], coords[1]
-        n_stress = layer_stress['stress'][i]
+        n_stress = layer_stress['stresses'][i]
         if minx <= x <= maxx and miny <= y <= maxy and n_stress > max_stress:
             max_stress = n_stress
 
