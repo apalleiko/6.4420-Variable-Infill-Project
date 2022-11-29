@@ -1,5 +1,5 @@
 import numpy as np
-
+import sys
 
 import mandoline.util as mshu
 import logging
@@ -715,39 +715,30 @@ def find_longest_edge_verts_tri(tri_P):
 
 def non_conforming_refinement(mesh, elements_to_refine):
     T_ori, P_ori = np.copy(mesh.elm), np.copy(mesh.vert)
-    p_list = list(P_ori)
 
-    total_refined = 0
-
-    ref_T, new_P = list(T_ori), [P_ori, ]
     current_mesh_verts = len(P_ori)
 
     for index in elements_to_refine:
-        new_index = index - total_refined
-        # import pdb; pdb.set_trace()
-        conn = ref_T[new_index]
-
+        conn = T_ori[index, :]
         quad_verts = P_ori[conn, :]
 
         # create new vertices
         # import pdb; pdb.set_trace()
         new_verts = refine_quad_p(quad_verts)[4:]
-        new_P.append(new_verts)
 
-        # create new connectivity for this triangle
+        # create new connectivity for this quad
         new_conn = refined_quad_connectivity(current_mesh_verts, conn)
-        ref_T.append(new_conn)
 
-        # update mesh vertices
+        # Update quads and vertices
+        T_ori = np.vstack((T_ori, new_conn))
+        P_ori = np.vstack((P_ori, new_verts))
+
+        # update number of mesh vertices
         current_mesh_verts += 5
 
-        del ref_T[new_index]
-        total_refined += 1
-
-    # create the new T,P arrays
-    ref_P, ref_T = np.vstack(new_P), np.vstack(ref_T)
-
-    return Mesh2D(elm=ref_T, vert=ref_P)
+    # Delete refined quad indices
+    T_ori = np.delete(T_ori, elements_to_refine, axis=0)
+    return Mesh2D(elm=T_ori, vert=P_ori)
 
 def conforming_refinement(mesh, elements_to_refine):
     """
