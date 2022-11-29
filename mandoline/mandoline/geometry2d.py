@@ -257,18 +257,25 @@ def make_infill_variable(rect, layer_stress, ewidth, min_dense, max_dense):
     refined_mesh = refine_layer(min_dense, max_dense, ori_mesh, layer_stress, ewidth)
     # print(refined_mesh.elm, refined_mesh.vert)
     out = []
-    line_pairs = [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
+    line_pairs = [(0, 1), (0, 3), (1, 2), (2, 3)]
     for quad in refined_mesh.elm:
-
+        midpoints = []
         for line_pair in line_pairs:
+            # TODO Do we need to be concerned about going over the same point in a line twice?
             quad_verts = [quad[line_pair[0]], quad[line_pair[1]]]
             line_verts = refined_mesh.vert[quad_verts]
             line = (
                 (line_verts[0][0], line_verts[0][1]),
                 (line_verts[1][0], line_verts[1][1])
                     )
-
+            midpoints.append((
+                    (line_verts[0][0] + line_verts[1][0])/2,
+                    (line_verts[0][1] + line_verts[1][1])/2
+                              ))
             out.append(line)
+
+        out.append((midpoints[0], midpoints[3]))
+        out.append((midpoints[1], midpoints[2]))
 
     return out
 
