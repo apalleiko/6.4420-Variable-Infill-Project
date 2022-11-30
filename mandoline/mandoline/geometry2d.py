@@ -1,8 +1,11 @@
 import math
+import sys
+
+import numpy as np
 
 import pyclipper
 
-# import mesh as msh
+import mandoline.mesh as msh
 
 
 SCALING_FACTOR = 1000
@@ -228,20 +231,113 @@ def make_infill_hexagons(rect, base_ang, density, ewidth):
         out.append(path)
     return out
 
-
-def make_infill_variable(rect, layer_stress, ewidth):
-    # (minx, miny, maxx, maxy)
-    # ori_T = np.array([0, 1, 2, 3])
-    # ori_P = np.array([[minx, miny, 0],
-    #          [maxx, miny, 0],
-    #          [maxx, maxy, 0],
-    #          [minx, miny, 0]])
-
-    # ori_mesh = msh.Mesh2D(elm=ori_T, vert=ori_P)
+# def point_in_elm()
 
 
-    raise(ValueError, "No Infill Pattern Implemented")
+def make_infill_variable(rect, layer_stress, ewidth, min_dense, max_dense):
+    minx, miny, maxx, maxy = rect
+    ori_T = np.array([[0, 1, 2, 3]])
+    ori_P = np.array([[minx, miny, 0],
+             [maxx, miny, 0],
+             [maxx, maxy, 0],
+             [minx, maxy, 0]])
 
-# def process
+    # ori_P = np.array([[-100, -100, 0],
+    #                   [100, -100, 0],
+    #                   [100, 100, 0],
+    #                   [-100, 100, 0]])
+
+    # layer_stress = {'coords':np.array([[-50, 50, 0],
+    #                                    [50, 50, 0],
+    #                                    [-50,  -50, 0],
+    #                                    [50, -50, 0]]),
+    #                 'stress':[0.9, 0.1, 0.5, 0.73]}
+
+    ori_mesh = msh.Mesh2D(elm=ori_T, vert=ori_P)
+    refined_mesh = refine_layer(min_dense, max_dense, ori_mesh, layer_stress, ewidth)
+    # print(refined_mesh.elm, refined_mesh.vert)
+    out = []
+    line_pairs = [(0, 1), (0, 3), (1, 2), (2, 3)]
+    for quad in refined_mesh.elm:
+        midpoints = []
+        for line_pair in line_pairs:
+            # TODO Do we need to be concerned about going over the same point in a line twice?
+            quad_verts = [quad[line_pair[0]], quad[line_pair[1]]]
+            line_verts = refined_mesh.vert[quad_verts]
+            line = (
+                (line_verts[0][0], line_verts[0][1]),
+                (line_verts[1][0], line_verts[1][1])
+                    )
+            midpoints.append((
+                    (line_verts[0][0] + line_verts[1][0])/2,
+                    (line_verts[0][1] + line_verts[1][1])/2
+                              ))
+            out.append(line)
+
+        out.append((midpoints[0], midpoints[3]))
+        out.append((midpoints[1], midpoints[2]))
+
+    return out
+
+def refine_layer(min_dense, max_dense, mesh, layer_stress, ewidth):
+    T, V = np.copy(mesh.elm), np.copy(mesh.vert)
+    to_refine = []
+
+    min_sp = density2space(max_dense, ewidth)
+    max_sp = density2space(min_dense, ewidth)
+
+    # Iterate through each quad element in the mesh
+    for i in range(T.shape[0]):
+        quad = T[i, :]
+
+        # Get the x and y points for this quad
+        x_points = [v[0] for v in [V[i] for i in quad]]
+        y_points = [v[1] for v in [V[i] for i in quad]]
+        maxx, minx = max(x_points), min(x_points)
+        maxy, miny = max(y_points), min(y_points)
+
+        # Skip if refining would bring below min spacing
+        if any([(maxx-minx)/2 < min_sp, (maxy-miny)/2 < min_sp]):
+            pass
+        # refine quad if too large of a distance between points
+        elif any([maxx-minx > max_sp, maxy-miny > max_sp]):
+            to_refine.append(i)
+        else:
+            # Get the acceptable normalized stress threshold
+            density = space2density(maxx - minx, ewidth)
+            stress_accept = (density-min_dense)/(max_dense-min_dense)
+
+            # Sample the stress, and refine if it is too big
+            max_stress = sample_stress(layer_stress, (minx, miny, maxx, maxy))
+            if max_stress > stress_accept:
+                to_refine.append(i)
+
+        if to_refine:
+            new_mesh = msh.non_conforming_refinement(mesh, to_refine)
+            return refine_layer(min_dense, max_dense, new_mesh, layer_stress, ewidth)
+
+        return mesh
+
+
+def sample_stress(layer_stress, rect):
+    "Return max stress in a given rectangle of a stress layer"
+    minx, miny, maxx, maxy = rect
+    max_stress = 0
+
+    for i, coords in enumerate(layer_stress['coords']):
+        x, y = coords[0], coords[1]
+        n_stress = layer_stress['stresses'][i]
+        if minx <= x <= maxx and miny <= y <= maxy and n_stress > max_stress:
+            max_stress = n_stress
+
+    return max_stress
+
+
+def space2density(spacing, ewidth):
+    return 2.0 * ewidth / spacing
+
+
+def density2space(density, ewidth):
+    return 2.0 * ewidth / density
 
 # vim: expandtab tabstop=4 shiftwidth=4 softtabstop=4 nowrap

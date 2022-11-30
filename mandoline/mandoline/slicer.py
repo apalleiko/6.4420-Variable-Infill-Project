@@ -13,7 +13,7 @@ from mandoline.mat2dict import mat2dict  # TODO Verify
 from mandoline.fea import fea
 
 import mandoline.geometry2d as geom
-from .TextThermometer import TextThermometer
+from mandoline.TextThermometer import TextThermometer
 
 
 slicer_configs = OrderedDict([
@@ -138,6 +138,7 @@ class Slicer(object):
     def __init__(self, models, fea_active, stl_path, **kwargs):
         self.fea_active = fea_active
         self.stl_path = stl_path
+        self.fea_results = None
         self.models = models
         self.conf = {}
         self.conf_metadata = {}
@@ -291,8 +292,8 @@ class Slicer(object):
         self.support_width = supp_nozl_d * self.extrusion_ratio
         for model in self.models:
             if self.fea_active:
-                fea_results = fea(self.stl_path)
-                fea_results.center_with_slicer([self.center_point[0], self.center_point[1], (max(fea_results.zs)-min(fea_results.zs))/2.0])
+                self.fea_results = fea(self.stl_path)
+                self.fea_results.center_with_slicer([self.center_point[0], self.center_point[1], (max(fea_results.zs)-min(fea_results.zs))/2.0])
             model.center( (self.center_point[0], self.center_point[1], (model.points.maxz-model.points.minz)/2.0) )
             model.assign_layers(self.layer_h)
         height = max([model.points.maxz - model.points.minz for model in self.models])
@@ -522,16 +523,14 @@ class Slicer(object):
         self.solid_infill = []
         self.sparse_infill = []
 
-        # TODO: Continue
+        # TODO: Continue, wrong layer index?
         if self.conf['infill_type'] == 'Variable':
-            print('Variable Infill Given...')
-            stress_path = input("Path to the stress map .mat file: ")
-            while not os.path.isfile(stress_path):
-                print('Invalid Stress Path given, please try again')
-                stress_path = input("Path to the stress map .mat file: ")
-            stress_map = mat2dict(stress_path)
-            print("Number of Stress Layers: ", len(stress_map))
+            assert self.fea_results is not None, "No FEA assigned to model"
+
+            print("Number of Stress Layers: ", len(self.fea_results.fea_map))
             print("Number of Slicer Layers: ", self.layers)
+        elif self.fea_results is not None:
+            print("WARNING: FEA results given but infill type not set to Variable")
 
         for layer in range(self.layers):
             self.thermo.update(layer)
@@ -583,9 +582,9 @@ class Slicer(object):
                     base_ang = 120 * (layer % 3)
                     lines = geom.make_infill_hexagons(bounds, base_ang, density, self.infill_width)
                 elif infill_type == "Variable":
-                    # TODO: Continue
-                    layer_stress = stress_map[layer]
-                    lines = geom.make_infill_variable(bounds, layer_stress, self.infill_width)
+                    # TODO: Continue, add max density parameter
+                    layer_stress = self.fea_results.fea_map[layer]
+                    lines = geom.make_infill_variable(bounds, layer_stress, self.infill_width, density, 0.9)
                 else:
                     lines = []
                 lines = geom.clip(lines, mask, subj_closed=False)
