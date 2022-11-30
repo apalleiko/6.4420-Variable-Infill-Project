@@ -292,8 +292,12 @@ class Slicer(object):
         self.support_width = supp_nozl_d * self.extrusion_ratio
         for model in self.models:
             if self.fea_active:
-                self.fea_results = fea(self.stl_path)
-                self.fea_results.center_with_slicer([self.center_point[0], self.center_point[1], (max(fea_results.zs)-min(fea_results.zs))/2.0])
+                if self.fea_active == 'default':
+                    default = True
+                else:
+                    default = False
+                self.fea_results = fea(self.stl_path,default)
+                self.fea_results.center_with_slicer([self.center_point[0], self.center_point[1], (max(self.fea_results.zs)-min(self.fea_results.zs))/2.0])
             model.center( (self.center_point[0], self.center_point[1], (model.points.maxz-model.points.minz)/2.0) )
             model.assign_layers(self.layer_h)
         height = max([model.points.maxz - model.points.minz for model in self.models])

@@ -12,7 +12,7 @@ def main():
     parser = argparse.ArgumentParser(prog='myprogram')
 
     parser.add_argument('--fea',
-                        help='Activate FEA and variable infill generation',action="store_true")
+                        help='Activate FEA and variable infill generation')
     parser.add_argument('-o', '--outfile',
                         help='Slices STL and write GCode to file.')
     parser.add_argument('-n', '--no-validation', action="store_true",
