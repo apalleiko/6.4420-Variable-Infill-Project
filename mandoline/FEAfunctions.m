@@ -3,10 +3,12 @@ classdef FEAfunctions
         function smodel = pdeModel(obj,stl)
             smodel = createpde('structural','static-solid'); %returns a structural analysis model for the specified analysis type. This model lets you solve small-strain linear elasticity problems.
             importGeometry(smodel,stl);
+            disp('PDE model created')
         end
 
         function mesh = createMesh(obj,smodel)
             mesh = generateMesh(smodel); %creates a mesh and stores it in the model object. model must contain a geometry
+            disp('Mesh generated')
         end   
 
         function [Rs, stressColors] = applyFEA(obj,smodel,E,nu,fixedVertices,fixedFaces,loadedVertices,Vertexforces,loadedFaces,Faceforces)
@@ -27,6 +29,7 @@ classdef FEAfunctions
             colorGradient = jet(256);
             stressColorIdxs = ceil(256.*Rs.VonMisesStress./max(Rs.VonMisesStress));
             stressColors = colorGradient(stressColorIdxs,:);
+            disp('PDE solved with boundary conditions')
         end
 
         function [layerX,layerY,layerStresses,Nb] = sliceLayer(obj,smodel,mesh,Rs,stressColors,layerRange,plotOn)
@@ -94,6 +97,7 @@ classdef FEAfunctions
                 hold on
             end
             hold off
+            disp('All layers sliced')
         end        
     end
 end
