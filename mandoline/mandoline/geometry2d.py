@@ -246,7 +246,7 @@ def make_infill_variable(rect, layer_stress, ewidth, min_dense, max_dense):
              [minx, maxy, 0]])
 
     # Enable for testing mode
-    testing = False
+    testing = True
 
     # if testing:
     #     ori_P = np.array([[-10, -10, 0],
@@ -262,11 +262,10 @@ def make_infill_variable(rect, layer_stress, ewidth, min_dense, max_dense):
 
     ori_mesh = msh.Mesh2D(elm=ori_T, vert=ori_P)
     refined_mesh = refine_layer(min_dense, max_dense, ori_mesh, layer_stress, ewidth, testing=testing)
-    # print(refined_mesh.elm, refined_mesh.vert)
     out = []
     line_pairs = [(0, 1), (0, 3), (1, 2), (2, 3)]
     for quad in refined_mesh.elm:
-        midpoints = []
+        # midpoints = []
         for line_pair in line_pairs:
             # TODO Do we need to be concerned about going over the same point in a line twice?
             quad_verts = [quad[line_pair[0]], quad[line_pair[1]]]
@@ -289,7 +288,6 @@ def make_infill_variable(rect, layer_stress, ewidth, min_dense, max_dense):
 
     if testing:
         plot_lines(out, layer_stress)
-        sys.exit(-1)
 
     return out
 
@@ -307,7 +305,7 @@ def plot_lines(lines, layer_stress):
     ax.scatter(scatter_X, scatter_Y, c=colors, marker='o', cmap='coolwarm')
 
     fig.show()
-    input('Waiting')
+    input('Waiting (lines)')
     return fig, ax
 
 def plot_mesh(mesh, layer_stress):
@@ -326,7 +324,7 @@ def plot_mesh(mesh, layer_stress):
     ax.scatter(scatter_X, scatter_Y, c=colors, marker='o', cmap='coolwarm')
 
     fig.show()
-    input('Waiting')
+    input('Waiting (mesh)')
     return fig, ax
 
 def highlight_quad(rect, fig, ax):
@@ -335,19 +333,14 @@ def highlight_quad(rect, fig, ax):
     w = maxx - minx
     h = maxy - miny
     # Current Rectangle
-    rt1 = Rectangle(point, w, h, facecolor=(0, 1, 0, 0.25))
-    # Used, not refined
-    rt2 = Rectangle(point, w, h, facecolor=(1, 0, 0, 0.1))
-    # Used, refined
-    rt3 = Rectangle(point, w, h, facecolor=(0, 0, 1, 0.1))
-    ax.add_patch(rt1)
-    ax.add_patch(rt2)
-    ax.add_patch(rt3)
+    rt = Rectangle(point, w, h, facecolor=(0, 1, 0, 0.25))
+    ax.add_patch(rt)
     fig.show()
-    input('waiting')
-    return fig, ax, (rt1, rt2, rt3)
+    input('waiting (quad)')
+    return fig, ax, rt
 
-def refine_layer(min_dense, max_dense, mesh, layer_stress, ewidth, testing=False):
+
+def refine_layer(min_dense, max_dense, mesh, layer_stress, ewidth, testing):
     T, V = np.copy(mesh.elm), np.copy(mesh.vert)
     to_refine = []
 
@@ -369,7 +362,7 @@ def refine_layer(min_dense, max_dense, mesh, layer_stress, ewidth, testing=False
 
         if testing:
             # Highlight active quad
-            fig, ax, rectangles = highlight_quad((minx, miny, maxx, maxy), fig, ax)
+            fig, ax, rectangle = highlight_quad((minx, miny, maxx, maxy), fig, ax)
 
         # Skip if refining would bring below min spacing
         if any([(maxx-minx)/2 < min_sp, (maxy-miny)/2 < min_sp]):
@@ -379,7 +372,8 @@ def refine_layer(min_dense, max_dense, mesh, layer_stress, ewidth, testing=False
             to_refine.append(i)
 
             if testing:
-                rectangles[2].remove()
+                print("Density too low, refinement needed")
+                rectangle._facecolor = (1, 0, 1, 0.5)
 
         else:
             # Get the acceptable normalized stress threshold
@@ -388,23 +382,28 @@ def refine_layer(min_dense, max_dense, mesh, layer_stress, ewidth, testing=False
 
             # Sample the stress, and refine if it is too big
             max_stress = sample_stress(layer_stress, (minx, miny, maxx, maxy))
+            if testing:
+                print(f'Calculated Density: {density}\nAcceptable Stress: {stress_accept}\nMax Stress Found: {max_stress}')
+
             if max_stress > stress_accept:
                 to_refine.append(i)
 
                 if testing:
-                    rectangles[2].remove()
+                    print('Additional density needed for stress')
+                    rectangle._facecolor = (1, 0, 0, 0.5)
 
         if testing:
             # Remove green rectangle, add low opacity
-            rectangles[0].remove()
+            rectangle._facecolor = (0, 0, 1, 0.5)
 
     if testing:
+        fig.show()
         input('ENTERING REFINEMENT')
         plt.close(fig)
 
     if to_refine:
         new_mesh = msh.non_conforming_refinement(mesh, to_refine)
-        return refine_layer(min_dense, max_dense, new_mesh, layer_stress, ewidth)
+        return refine_layer(min_dense, max_dense, new_mesh, layer_stress, ewidth, testing)
 
     return mesh
 
