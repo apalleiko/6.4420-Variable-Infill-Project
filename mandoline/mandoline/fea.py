@@ -8,7 +8,8 @@ class fea(object):
     def __init__(self, stl_path,fea_active):
         self.stl_path = stl_path
         self.fea_active = fea_active
-        self.runFEA()
+        if self.fea_active != 'default':
+            self.runFEA()
         self.fea_map = []
         self.xs = np.array([])
         self.ys = np.array([])
@@ -19,35 +20,26 @@ class fea(object):
         self.normalize_stresses()
 
     def runFEA(self):
+        assert self.fea_active == 'custom', "to use fea, enter keyword custom or default after --fea"
         satisfied = 'N'
         while satisfied != 'Y':
             eng = matlab.engine.start_matlab()
             smodel = eng.FEA_run_model(self.stl_path,nargout=1)
-            if self.fea_active == 'default':
-                fixedVertices = '[]'
-                fixedFaces = '[3,5]'
-                loadedFaces = '[2]'
-                faceForces = '[[0;0;-10]]'
-                loadedVertices = '[]'
-                vertexForces = '[]'
-                eng.FEA_solve(smodel, self.stl_path, fixedVertices, fixedFaces, loadedFaces, faceForces, loadedVertices,
-                              vertexForces, nargout=0)
-                break
-            elif self.fea_active == 'custom':
-                    empty = '[]'
-                    fixedVertices = str(input("List vertices to fix as Python array (for two fixed vertices at V1 and V2, input --> ex. [1,2]): ") or empty)
-                    fixedFaces = str(input("List faces to fix as Python array (for two fixed faces at F1 and F3, input --> ex. [1,3]): ") or empty)
-                    loadedFaces = str(input("List faces to load as Python array (for two loaded faces at F1 and F3, input --> ex. [1,3]): ") or empty)
-                    faceForces = str(input("List 3D force vectors (N) to apply to faces as a Python array of arrays (for two loaded faces, input --> ex. [[-10; 5; 0],[0; -10; 0]]): ") or empty)
-                    loadedVertices = str(input("List vertices to load as Python array (for two loaded vertices at V1 and V2, input --> ex. [1,2]): ") or empty)
-                    vertexForces = str(input("List 3D force vectors (N) to apply to vertices as a Python array of arrays (with two loaded vertices, input --> ex. [[-10; 5; 0],[0; -10; 0]]): ") or empty)
-                    eng.FEA_solve(smodel, self.stl_path,fixedVertices,fixedFaces,loadedFaces,faceForces,loadedVertices,vertexForces,nargout=0)
-                    satisfied = input("[Y] to proceed with slicing, [N] to repeat FEA: ")
-            else:
-                raise AttributeError
+            empty = '[]'
+            fixedVertices = str(input("List vertices to fix as Python array (for two fixed vertices at V1 and V2, input --> ex. [1,2]): ") or empty)
+            fixedFaces = str(input("List faces to fix as Python array (for two fixed faces at F1 and F3, input --> ex. [1,3]): ") or empty)
+            loadedFaces = str(input("List faces to load as Python array (for two loaded faces at F1 and F3, input --> ex. [1,3]): ") or empty)
+            faceForces = str(input("List 3D force vectors (N) to apply to faces as a Python array of arrays (for two loaded faces, input --> ex. [[-10; 5; 0],[0; -10; 0]]): ") or empty)
+            loadedVertices = str(input("List vertices to load as Python array (for two loaded vertices at V1 and V2, input --> ex. [1,2]): ") or empty)
+            vertexForces = str(input("List 3D force vectors (N) to apply to vertices as a Python array of arrays (with two loaded vertices, input --> ex. [[-10; 5; 0],[0; -10; 0]]): ") or empty)
+            eng.FEA_solve(smodel, self.stl_path,fixedVertices,fixedFaces,loadedFaces,faceForces,loadedVertices,vertexForces,nargout=0)
+            satisfied = input("\n[Y] to proceed with slicing, [N] to repeat FEA: ")
 
     def mat2dict(self):
-        mat_contents = sp.io.loadmat('../fea_output.mat')
+        if self.fea_active == 'default':
+            mat_contents = sp.io.loadmat('../fea_output_default.mat')
+        else:
+            mat_contents = sp.io.loadmat('../fea_output.mat')
         layers = []
         for idx, layer in enumerate(mat_contents['layers'][0, :]):
             layers.append(

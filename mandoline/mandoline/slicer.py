@@ -291,6 +291,8 @@ class Slicer(object):
         self.infill_width = infl_nozl_d * self.extrusion_ratio
         self.support_width = supp_nozl_d * self.extrusion_ratio
         for model in self.models:
+            print('FEA type: ',self.fea_active)
+            print('STL path: ',self.stl_path)
             if self.fea_active:
                 self.fea_results = fea(self.stl_path,self.fea_active)
                 self.fea_results.center_with_slicer([self.center_point[0], self.center_point[1], (max(self.fea_results.zs)-min(self.fea_results.zs))/2.0])
