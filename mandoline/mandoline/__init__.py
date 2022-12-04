@@ -112,7 +112,7 @@ def main():
         if args.outfile:
             outfile = args.outfile
         else:
-            outfile = os.path.splitext(infile)[0] + ".gcode"
+            outfile = './GCode_output/'+os.path.splitext(infile)[0].split('/')[-1]+'.gcode'
         slicer.slice_to_file(outfile, showgui=args.gui_display)
 
 

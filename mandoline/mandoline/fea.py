@@ -5,9 +5,10 @@ import matlab.engine
 
 
 class fea(object):
-    def __init__(self, stl_path,fea_active):
+    def __init__(self, stl_path,fea_active,layer_height):
         self.stl_path = stl_path
         self.fea_active = fea_active
+        self.layer_height = layer_height
         if self.fea_active != 'default':
             self.runFEA()
         self.fea_map = []
@@ -32,7 +33,7 @@ class fea(object):
             faceForces = str(input("List 3D force vectors (N) to apply to faces as a Python array of arrays (for two loaded faces, input --> ex. [[-10; 5; 0],[0; -10; 0]]): ") or empty)
             loadedVertices = str(input("List vertices to load as Python array (for two loaded vertices at V1 and V2, input --> ex. [1,2]): ") or empty)
             vertexForces = str(input("List 3D force vectors (N) to apply to vertices as a Python array of arrays (with two loaded vertices, input --> ex. [[-10; 5; 0],[0; -10; 0]]): ") or empty)
-            eng.FEA_solve(smodel, self.stl_path,fixedVertices,fixedFaces,loadedFaces,faceForces,loadedVertices,vertexForces,nargout=0)
+            eng.FEA_solve(smodel, self.stl_path,self.layer_height,fixedVertices,fixedFaces,loadedFaces,faceForces,loadedVertices,vertexForces,nargout=0)
             satisfied = input("\n[Y] to proceed with slicing, [N] to repeat FEA: ")
 
     def mat2dict(self):
@@ -88,3 +89,7 @@ class fea(object):
 
     def normalize_stresses(self):
         self.normalized_stresses = np.array(self.stresses-min(self.stresses))/(max(self.stresses)-min(self.stresses))
+
+    def get_normalized_layer_stresses(self,idx):
+        cur_stresses = self.fea_map[idx]['stresses']
+        return np.array(cur_stresses-min(self.stresses))/(max(self.stresses)-min(self.stresses))

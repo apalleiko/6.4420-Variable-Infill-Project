@@ -1,4 +1,4 @@
-function FEA_solve(smodel,stl_path, fixedVertices,fixedFaces,loadedFaces,faceForces,loadedVertices,vertexForces)
+function FEA_solve(smodel,stl_path, layerHeight, fixedVertices,fixedFaces,loadedFaces,faceForces,loadedVertices,vertexForces)
     FEA = FEAfunctions;
     mesh = FEA.createMesh(smodel);
     figure(2)
@@ -22,7 +22,7 @@ function FEA_solve(smodel,stl_path, fixedVertices,fixedFaces,loadedFaces,faceFor
     figure(3)
     pdeplot3D(smodel,'ColorMapData',Rs.VonMisesStress,'Deformation',Rs.Displacement,'DeformationScaleFactor',100)
     %%
-    layerHeight = 0.2;
+%     layerHeight = 0.2;
     layers = FEA.generateAllLayers(smodel,mesh,Rs,stressColors,layerHeight,false);
     %%
     save('../fea_output.mat','layers')
