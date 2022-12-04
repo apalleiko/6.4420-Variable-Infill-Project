@@ -53,10 +53,13 @@ def main():
     args = parser.parse_args()
 
     stl = StlData()
+    infile = False
+
     if args.fea == 'default':
         infile = './stl_files/cube_small.stl'
     elif args.infile:
         infile = args.infile
+
     if infile:
         stl.read_file(infile)
         if args.verbose:
