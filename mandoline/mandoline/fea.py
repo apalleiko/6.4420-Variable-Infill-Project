@@ -47,7 +47,7 @@ class fea(object):
                 raise AttributeError
 
     def mat2dict(self):
-        mat_contents = sp.io.loadmat('./fea_output.mat')
+        mat_contents = sp.io.loadmat('../fea_output.mat')
         layers = []
         for idx, layer in enumerate(mat_contents['layers'][0, :]):
             layers.append(

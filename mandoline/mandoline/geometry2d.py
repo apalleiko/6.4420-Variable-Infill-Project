@@ -6,7 +6,10 @@ import numpy as np
 import pyclipper
 
 import mandoline.mesh as msh
-
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
+import time
 
 SCALING_FACTOR = 1000
 
@@ -242,19 +245,23 @@ def make_infill_variable(rect, layer_stress, ewidth, min_dense, max_dense):
              [maxx, maxy, 0],
              [minx, maxy, 0]])
 
-    # ori_P = np.array([[-100, -100, 0],
-    #                   [100, -100, 0],
-    #                   [100, 100, 0],
-    #                   [-100, 100, 0]])
+    # Enable for testing mode
+    testing = False
 
-    # layer_stress = {'coords':np.array([[-50, 50, 0],
-    #                                    [50, 50, 0],
-    #                                    [-50,  -50, 0],
-    #                                    [50, -50, 0]]),
-    #                 'stress':[0.9, 0.1, 0.5, 0.73]}
+    # if testing:
+    #     ori_P = np.array([[-10, -10, 0],
+    #                       [10, -10, 0],
+    #                       [10, 10, 0],
+    #                       [-10, 10, 0]])
+    #
+    #     layer_stress = {'coords': np.array([[-5, 5, 0],
+    #                                        [5, 5, 0],
+    #                                        [-5,  -5, 0],
+    #                                        [5, -5, 0]]),
+    #                     'stresses': [0.9, 0.1, 0.5, 0.73]}
 
     ori_mesh = msh.Mesh2D(elm=ori_T, vert=ori_P)
-    refined_mesh = refine_layer(min_dense, max_dense, ori_mesh, layer_stress, ewidth)
+    refined_mesh = refine_layer(min_dense, max_dense, ori_mesh, layer_stress, ewidth, testing=testing)
     # print(refined_mesh.elm, refined_mesh.vert)
     out = []
     line_pairs = [(0, 1), (0, 3), (1, 2), (2, 3)]
@@ -268,23 +275,87 @@ def make_infill_variable(rect, layer_stress, ewidth, min_dense, max_dense):
                 (line_verts[0][0], line_verts[0][1]),
                 (line_verts[1][0], line_verts[1][1])
                     )
-            midpoints.append((
-                    (line_verts[0][0] + line_verts[1][0])/2,
-                    (line_verts[0][1] + line_verts[1][1])/2
-                              ))
+
+            # TODO Do we need to add these midpoints?
+            # midpoints.append((
+            #         (line_verts[0][0] + line_verts[1][0])/2,
+            #         (line_verts[0][1] + line_verts[1][1])/2
+            #                   ))
+
             out.append(line)
 
-        out.append((midpoints[0], midpoints[3]))
-        out.append((midpoints[1], midpoints[2]))
+        # out.append((midpoints[0], midpoints[3]))
+        # out.append((midpoints[1], midpoints[2]))
+
+    if testing:
+        plot_lines(out, layer_stress)
+        sys.exit(-1)
 
     return out
 
-def refine_layer(min_dense, max_dense, mesh, layer_stress, ewidth):
+
+def plot_lines(lines, layer_stress):
+    fig, ax = plt.subplots()
+    for l in lines:
+        X = [l[0][0], l[1][0]]
+        Y = [l[0][1], l[1][1]]
+        ax.plot(X, Y, color='blue')
+
+    scatter_X = layer_stress['coords'][:, 0]
+    scatter_Y = layer_stress['coords'][:, 1]
+    colors = layer_stress['stresses']
+    ax.scatter(scatter_X, scatter_Y, c=colors, marker='o', cmap='coolwarm')
+
+    fig.show()
+    input('Waiting')
+    return fig, ax
+
+def plot_mesh(mesh, layer_stress):
+    fig, ax = plt.subplots()
+    line_pairs = [(0, 1), (0, 3), (1, 2), (2, 3)]
+    for quad in mesh.elm:
+        for line_pair in line_pairs:
+            quad_verts = [quad[line_pair[0]], quad[line_pair[1]]]
+            line_verts = mesh.vert[quad_verts]
+            ax.plot((line_verts[0][0], line_verts[1][0]),
+                    (line_verts[0][1], line_verts[1][1]), color='blue')
+
+    scatter_X = layer_stress['coords'][:, 0]
+    scatter_Y = layer_stress['coords'][:, 1]
+    colors = layer_stress['stresses']
+    ax.scatter(scatter_X, scatter_Y, c=colors, marker='o', cmap='coolwarm')
+
+    fig.show()
+    input('Waiting')
+    return fig, ax
+
+def highlight_quad(rect, fig, ax):
+    minx, miny, maxx, maxy = rect
+    point = (minx, miny)
+    w = maxx - minx
+    h = maxy - miny
+    # Current Rectangle
+    rt1 = Rectangle(point, w, h, facecolor=(0, 1, 0, 0.25))
+    # Used, not refined
+    rt2 = Rectangle(point, w, h, facecolor=(1, 0, 0, 0.1))
+    # Used, refined
+    rt3 = Rectangle(point, w, h, facecolor=(0, 0, 1, 0.1))
+    ax.add_patch(rt1)
+    ax.add_patch(rt2)
+    ax.add_patch(rt3)
+    fig.show()
+    input('waiting')
+    return fig, ax, (rt1, rt2, rt3)
+
+def refine_layer(min_dense, max_dense, mesh, layer_stress, ewidth, testing=False):
     T, V = np.copy(mesh.elm), np.copy(mesh.vert)
     to_refine = []
 
     min_sp = density2space(max_dense, ewidth)
     max_sp = density2space(min_dense, ewidth)
+
+    if testing:
+        fig, ax = plot_mesh(mesh, layer_stress)
 
     # Iterate through each quad element in the mesh
     for i in range(T.shape[0]):
@@ -296,12 +367,20 @@ def refine_layer(min_dense, max_dense, mesh, layer_stress, ewidth):
         maxx, minx = max(x_points), min(x_points)
         maxy, miny = max(y_points), min(y_points)
 
+        if testing:
+            # Highlight active quad
+            fig, ax, rectangles = highlight_quad((minx, miny, maxx, maxy), fig, ax)
+
         # Skip if refining would bring below min spacing
         if any([(maxx-minx)/2 < min_sp, (maxy-miny)/2 < min_sp]):
             pass
         # refine quad if too large of a distance between points
         elif any([maxx-minx > max_sp, maxy-miny > max_sp]):
             to_refine.append(i)
+
+            if testing:
+                rectangles[2].remove()
+
         else:
             # Get the acceptable normalized stress threshold
             density = space2density(maxx - minx, ewidth)
@@ -312,11 +391,22 @@ def refine_layer(min_dense, max_dense, mesh, layer_stress, ewidth):
             if max_stress > stress_accept:
                 to_refine.append(i)
 
-        if to_refine:
-            new_mesh = msh.non_conforming_refinement(mesh, to_refine)
-            return refine_layer(min_dense, max_dense, new_mesh, layer_stress, ewidth)
+                if testing:
+                    rectangles[2].remove()
 
-        return mesh
+        if testing:
+            # Remove green rectangle, add low opacity
+            rectangles[0].remove()
+
+    if testing:
+        input('ENTERING REFINEMENT')
+        plt.close(fig)
+
+    if to_refine:
+        new_mesh = msh.non_conforming_refinement(mesh, to_refine)
+        return refine_layer(min_dense, max_dense, new_mesh, layer_stress, ewidth)
+
+    return mesh
 
 
 def sample_stress(layer_stress, rect):
