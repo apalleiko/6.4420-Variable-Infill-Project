@@ -301,7 +301,7 @@ def plot_lines(lines, layer_stress):
 
     scatter_X = layer_stress['coords'][:, 0]
     scatter_Y = layer_stress['coords'][:, 1]
-    colors = layer_stress['stresses']
+    colors = layer_stress['normalized_stresses']
     ax.scatter(scatter_X, scatter_Y, c=colors, marker='o', cmap='coolwarm')
 
     fig.show()
@@ -320,7 +320,7 @@ def plot_mesh(mesh, layer_stress):
 
     scatter_X = layer_stress['coords'][:, 0]
     scatter_Y = layer_stress['coords'][:, 1]
-    colors = layer_stress['stresses']
+    colors = layer_stress['normalized_stresses']
     ax.scatter(scatter_X, scatter_Y, c=colors, marker='o', cmap='coolwarm')
 
     fig.show()
@@ -415,7 +415,7 @@ def sample_stress(layer_stress, rect):
 
     for i, coords in enumerate(layer_stress['coords']):
         x, y = coords[0], coords[1]
-        n_stress = layer_stress['stresses'][i]
+        n_stress = layer_stress['normalized_stresses'][i]
         if minx <= x <= maxx and miny <= y <= maxy and n_stress > max_stress:
             max_stress = n_stress
 
