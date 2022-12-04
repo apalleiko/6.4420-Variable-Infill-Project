@@ -585,7 +585,8 @@ class Slicer(object):
                     lines = geom.make_infill_hexagons(bounds, base_ang, density, self.infill_width)
                 elif infill_type == "Variable":
                     # TODO: Continue, add max density parameter
-                    layer_stress = self.fea_results.fea_map[layer]
+                    layer_stress = self.fea_results.fea_map[layer].copy()
+                    layer_stress['normalized_stresses'] = self.fea_results.get_normalized_layer_stresses(layer)
                     lines = geom.make_infill_variable(bounds, layer_stress, self.infill_width, density, 0.9)
                 else:
                     lines = []

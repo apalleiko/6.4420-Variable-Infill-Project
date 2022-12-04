@@ -246,7 +246,7 @@ def make_infill_variable(rect, layer_stress, ewidth, min_dense, max_dense):
              [minx, maxy, 0]])
 
     # Enable for testing mode
-    testing = True
+    testing = False
 
     # if testing:
     #     ori_P = np.array([[-10, -10, 0],
