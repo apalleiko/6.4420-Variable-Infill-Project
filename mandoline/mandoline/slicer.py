@@ -294,7 +294,7 @@ class Slicer(object):
             print('FEA type: ',self.fea_active)
             print('STL path: ',self.stl_path)
             if self.fea_active:
-                self.fea_results = fea(self.stl_path,self.fea_active)
+                self.fea_results = fea(self.stl_path,self.fea_active,self.conf['layer_height'])
                 self.fea_results.center_with_slicer([self.center_point[0], self.center_point[1], (max(self.fea_results.zs)-min(self.fea_results.zs))/2.0])
             model.center( (self.center_point[0], self.center_point[1], (model.points.maxz-model.points.minz)/2.0) )
             model.assign_layers(self.layer_h)
