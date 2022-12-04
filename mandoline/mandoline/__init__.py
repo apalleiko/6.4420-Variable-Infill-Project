@@ -53,12 +53,15 @@ def main():
     args = parser.parse_args()
 
     stl = StlData()
-
-    if args.infile:
-        stl.read_file(args.infile)
+    if args.fea == 'default':
+        infile = './stl_files/cube_small.stl'
+    elif args.infile:
+        infile = args.infile
+    if infile:
+        stl.read_file(infile)
         if args.verbose:
             print("Read {0} ({4} facets, {1:.1f} x {2:.1f} x {3:.1f})".format(
-                args.infile,
+                infile,
                 stl.points.maxx - stl.points.minx,
                 stl.points.maxy - stl.points.miny,
                 stl.points.maxz - stl.points.minz,
@@ -69,11 +72,11 @@ def main():
             manifold = True
             manifold = stl.check_manifold(verbose=args.verbose)
             if manifold and (args.verbose or args.gui_display):
-                print("{} is manifold.".format(args.infile))
+                print("{} is manifold.".format(infile))
             if not manifold:
                 sys.exit(-1)
 
-    slicer = Slicer([stl],args.fea,args.infile)
+    slicer = Slicer([stl],args.fea,infile)
 
     slicer.load_configs()
     if args.set_option:
@@ -102,11 +105,11 @@ def main():
     if args.show_configs:
         slicer.display_configs_help(vals_only=True)
 
-    if args.infile:
+    if infile:
         if args.outfile:
             outfile = args.outfile
         else:
-            outfile = os.path.splitext(args.infile)[0] + ".gcode"
+            outfile = os.path.splitext(infile)[0] + ".gcode"
         slicer.slice_to_file(outfile, showgui=args.gui_display)
 
 
