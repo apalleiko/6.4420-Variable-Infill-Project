@@ -25,6 +25,7 @@ slicer_configs = OrderedDict([
         ('bottom_layers',     int,      3, (0, 10),     "Number of layers to print on the bottom side of the object."),
         ('infill_type',       list, 'Grid', ['Lines', 'Triangles', 'Grid', 'Hexagons', 'Variable'], "Pattern that the infill will be printed in."),
         ('infill_density',    float,  30., (0., 100.),  "Infill density in percent."),
+        ('infill_max_density',float,  90., (0., 100.),  "Max Variable Infill density in percent."),
         ('infill_overlap',    float, 0.15, (0.0, 1.0),  "Amount, in mm that infill will overlap with perimeter extrusions."),
         ('feed_rate',         int,     60, (1, 300),    "Speed while extruding. (mm/s)"),
         ('travel_rate_xy',    int,    100, (1, 300),    "Travel motion speed (mm/s)"),
@@ -566,6 +567,7 @@ class Slicer(object):
             infill_type = self.conf['infill_type']
 
             density = self.conf['infill_density'] / 100.0
+            max_density = self.conf['max_infill_density'] / 100.0
             if density > 0.0:
                 if density >= 0.99:
                     infill_type = "Lines"
@@ -584,10 +586,11 @@ class Slicer(object):
                     base_ang = 120 * (layer % 3)
                     lines = geom.make_infill_hexagons(bounds, base_ang, density, self.infill_width)
                 elif infill_type == "Variable":
-                    # TODO: Continue, add max density parameter
+                    assert max_density > density, 'Invalid Max Density Passed'
                     layer_stress = self.fea_results.fea_map[layer].copy()
                     layer_stress['normalized_stresses'] = self.fea_results.get_normalized_layer_stresses(layer)
-                    lines = geom.make_infill_variable(bounds, layer_stress, self.infill_width, density, 0.9)
+                    lines = geom.make_infill_variable(bounds, layer_stress, self.infill_width,
+                                                      density, max_density)
                 else:
                     lines = []
                 lines = geom.clip(lines, mask, subj_closed=False)
