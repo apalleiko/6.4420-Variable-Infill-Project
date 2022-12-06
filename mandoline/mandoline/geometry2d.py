@@ -234,11 +234,22 @@ def make_infill_hexagons(rect, base_ang, density, ewidth):
         out.append(path)
     return out
 
-# def point_in_elm()
 
-
-def make_infill_variable(rect, layer_stress, ewidth, min_dense, max_dense):
+def make_square(rect):
     minx, miny, maxx, maxy = rect
+    w, h = maxx-minx, maxy-miny
+    if h > w:
+        w = h
+    else:
+        h = w
+
+    maxx, maxy = minx + w, miny + h
+    return (minx, miny, maxx, maxy)
+
+
+def make_infill_variable(rect, fea_results, layer, ewidth, min_dense, max_dense):
+    minx, miny, maxx, maxy = make_square(rect)
+
     ori_T = np.array([[0, 1, 2, 3]])
     ori_P = np.array([[minx, miny, 0],
              [maxx, miny, 0],
@@ -261,11 +272,10 @@ def make_infill_variable(rect, layer_stress, ewidth, min_dense, max_dense):
     #                     'stresses': [0.9, 0.1, 0.5, 0.73]}
 
     ori_mesh = msh.Mesh2D(elm=ori_T, vert=ori_P)
-    refined_mesh = refine_layer(min_dense, max_dense, ori_mesh, layer_stress, ewidth, testing=testing)
+    refined_mesh = refine_layer(min_dense, max_dense, ori_mesh, fea_results, layer, ewidth, testing=testing)
     out = []
     line_pairs = [(0, 1), (0, 3), (1, 2), (2, 3)]
     for quad in refined_mesh.elm:
-        # midpoints = []
         for line_pair in line_pairs:
             # TODO Do we need to be concerned about going over the same point in a line twice?
             quad_verts = [quad[line_pair[0]], quad[line_pair[1]]]
@@ -275,34 +285,20 @@ def make_infill_variable(rect, layer_stress, ewidth, min_dense, max_dense):
                 (line_verts[1][0], line_verts[1][1])
                     )
 
-            # TODO Do we need to add these midpoints?
-            # midpoints.append((
-            #         (line_verts[0][0] + line_verts[1][0])/2,
-            #         (line_verts[0][1] + line_verts[1][1])/2
-            #                   ))
-
             out.append(line)
 
-        # out.append((midpoints[0], midpoints[3]))
-        # out.append((midpoints[1], midpoints[2]))
-
     if testing:
-        plot_lines(out, layer_stress)
+        plot_lines(out)
 
     return out
 
 
-def plot_lines(lines, layer_stress):
+def plot_lines(lines):
     fig, ax = plt.subplots()
     for l in lines:
         X = [l[0][0], l[1][0]]
         Y = [l[0][1], l[1][1]]
         ax.plot(X, Y, color='blue')
-
-    scatter_X = layer_stress['coords'][:, 0]
-    scatter_Y = layer_stress['coords'][:, 1]
-    colors = layer_stress['normalized_stresses']
-    ax.scatter(scatter_X, scatter_Y, c=colors, marker='o', cmap='coolwarm')
 
     fig.show()
     input('Waiting (lines)')
@@ -340,7 +336,12 @@ def highlight_quad(rect, fig, ax):
     return fig, ax, rt
 
 
-def refine_layer(min_dense, max_dense, mesh, layer_stress, ewidth, testing):
+def refine_layer(min_dense, max_dense, mesh, fea_results, layer, ewidth, testing):
+    layer_stress = fea_results.fea_map[layer].copy()
+    layer_stress['normalized_stresses'] = fea_results.get_normalized_layer_stresses(layer)
+
+    sample_column = True
+
     T, V = np.copy(mesh.elm), np.copy(mesh.vert)
     to_refine = []
 
@@ -381,7 +382,11 @@ def refine_layer(min_dense, max_dense, mesh, layer_stress, ewidth, testing):
             stress_accept = (density-min_dense)/(max_dense-min_dense)
 
             # Sample the stress, and refine if it is too big
-            max_stress = sample_stress(layer_stress, (minx, miny, maxx, maxy))
+            if sample_column:
+                max_stress = sample_column_stress(fea_results, (minx, miny, maxx, maxy))
+            else:
+                max_stress = sample_stress(layer_stress, (minx, miny, maxx, maxy))
+
             if testing:
                 print(f'Calculated Density: {density}\nAcceptable Stress: {stress_accept}\nMax Stress Found: {max_stress}')
 
@@ -403,7 +408,7 @@ def refine_layer(min_dense, max_dense, mesh, layer_stress, ewidth, testing):
 
     if to_refine:
         new_mesh = msh.non_conforming_refinement(mesh, to_refine)
-        return refine_layer(min_dense, max_dense, new_mesh, layer_stress, ewidth, testing)
+        return refine_layer(min_dense, max_dense, new_mesh, fea_results, layer, ewidth, testing)
 
     return mesh
 
@@ -416,6 +421,19 @@ def sample_stress(layer_stress, rect):
     for i, coords in enumerate(layer_stress['coords']):
         x, y = coords[0], coords[1]
         n_stress = layer_stress['normalized_stresses'][i]
+        if minx <= x <= maxx and miny <= y <= maxy and n_stress > max_stress:
+            max_stress = n_stress
+
+    return max_stress
+
+# TODO
+def sample_column_stress(fea_results, rect):
+    "Return max stress in a given rectangle of a stress layer"
+    minx, miny, maxx, maxy = rect
+    max_stress = 0
+    for i in range(fea_results.xs.shape[0]):
+        x, y, z = fea_results.xs[i], fea_results.ys[i], fea_results.zs[i]
+        n_stress = fea_results.normalized_stresses[i]
         if minx <= x <= maxx and miny <= y <= maxy and n_stress > max_stress:
             max_stress = n_stress
 

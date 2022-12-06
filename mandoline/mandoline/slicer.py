@@ -567,7 +567,7 @@ class Slicer(object):
             infill_type = self.conf['infill_type']
 
             density = self.conf['infill_density'] / 100.0
-            max_density = self.conf['max_infill_density'] / 100.0
+            max_density = self.conf['infill_max_density'] / 100.0
             if density > 0.0:
                 if density >= 0.99:
                     infill_type = "Lines"
@@ -587,9 +587,7 @@ class Slicer(object):
                     lines = geom.make_infill_hexagons(bounds, base_ang, density, self.infill_width)
                 elif infill_type == "Variable":
                     assert max_density > density, 'Invalid Max Density Passed'
-                    layer_stress = self.fea_results.fea_map[layer].copy()
-                    layer_stress['normalized_stresses'] = self.fea_results.get_normalized_layer_stresses(layer)
-                    lines = geom.make_infill_variable(bounds, layer_stress, self.infill_width,
+                    lines = geom.make_infill_variable(bounds, self.fea_results, layer, self.infill_width,
                                                       density, max_density)
                 else:
                     lines = []
