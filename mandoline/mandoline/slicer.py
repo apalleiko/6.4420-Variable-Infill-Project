@@ -15,6 +15,8 @@ from mandoline.fea import fea
 import mandoline.geometry2d as geom
 from mandoline.TextThermometer import TextThermometer
 
+import matplotlib as mpl
+import matplotlib.pyplot as plt
 
 slicer_configs = OrderedDict([
     ('Quality', (
@@ -529,11 +531,28 @@ class Slicer(object):
         # TODO: Continue, wrong layer index?
         if self.conf['infill_type'] == 'Variable':
             assert self.fea_results is not None, "No FEA assigned to model"
-
-            print("Number of Stress Layers: ", len(self.fea_results.fea_map))
-            print("Number of Slicer Layers: ", self.layers)
         elif self.fea_results is not None:
             print("WARNING: FEA results given but infill type not set to Variable")
+
+        # Get bounds of model
+        minimum_x, minimum_y, maximum_x, maximum_y = None, None, None, None
+        for layer in range(self.layers):
+            perims = self.perimeter_paths[layer]
+            bounds = geom.paths_bounds(perims[0])
+            if minimum_x is None or bounds[0] < minimum_x:
+                minimum_x = bounds[0]
+            if minimum_y is None or bounds[1] < minimum_y:
+                minimum_y = bounds[1]
+            if maximum_x is None or bounds[2] > maximum_x:
+                maximum_x = bounds[2]
+            if maximum_y is None or bounds[3] > maximum_y:
+                maximum_y = bounds[3]
+
+        density = self.conf['infill_density'] / 100.0
+        max_density = self.conf['infill_max_density'] / 100.0
+
+        largest_bounds = geom.make_square((minimum_x, minimum_y, maximum_x, maximum_y))
+        self.divide_fea_results(max_density, largest_bounds)
 
         for layer in range(self.layers):
             self.thermo.update(layer)
@@ -566,8 +585,6 @@ class Slicer(object):
             sparse_infill = []
             infill_type = self.conf['infill_type']
 
-            density = self.conf['infill_density'] / 100.0
-            max_density = self.conf['infill_max_density'] / 100.0
             if density > 0.0:
                 if density >= 0.99:
                     infill_type = "Lines"
@@ -587,14 +604,61 @@ class Slicer(object):
                     lines = geom.make_infill_hexagons(bounds, base_ang, density, self.infill_width)
                 elif infill_type == "Variable":
                     assert max_density > density, 'Invalid Max Density Passed'
-                    lines = geom.make_infill_variable(bounds, self.fea_results, layer, self.infill_width,
-                                                      density, max_density)
+                    layer_height = layer * self.layer_h
+                    lines = geom.make_infill_variable(largest_bounds, self.fea_results, layer, self.infill_width,
+                                                      density, max_density, layer_height)
                 else:
                     lines = []
                 lines = geom.clip(lines, mask, subj_closed=False)
                 sparse_infill.extend(lines)
             self.sparse_infill.append(sparse_infill)
         self.thermo.clear()
+
+    def divide_fea_results(self, max_density, rect):
+        """Modifies fea class to contain column bounds based on minimum spacing containing stress points
+        Output is a set of nested dictionaries indexed first by an x-range and then a y-range"""
+        print('Setting stress columns')
+        spacing = geom.density2space(max_density, self.infill_width)
+        xi, yi = rect[0], rect[1]
+        stress_columns = dict()
+        while xi < rect[2]:
+            x_bounds = (round(xi, 2), round(xi + spacing, 2))
+            stress_columns[x_bounds] = dict()
+            while yi < rect[3]:
+                y_bounds = (round(yi, 2), round(yi + spacing, 2))
+                stress_columns[x_bounds][y_bounds] = []
+                yi += spacing
+            xi += spacing
+            yi = rect[1]
+
+        # fig, ax = plt.subplots()
+        # ax.plot((rect[0], rect[1]), (rect[2], rect[3]))
+        # for bounds in stress_columns.keys():
+        #     print(bounds)
+        #     minx, miny, maxx, maxy = bounds
+        #     point = (minx, miny)
+        #     w = maxx - minx
+        #     h = maxy - miny
+        #     # Current Rectangle
+        #     ax.add_patch(mpl.patches.Rectangle(point, w, h, edgecolor=(1, 0, 0), facecolor=(0, 1, 0)))
+
+        for i in range(self.fea_results.xs.shape[0]):
+            x, y, z = self.fea_results.xs[i], self.fea_results.ys[i], self.fea_results.zs[i]
+            stress = self.fea_results.normalized_stresses[i]
+            for xb in stress_columns.keys():
+                for yb in stress_columns[xb].keys():
+                    minx, miny, maxx, maxy = xb[0], yb[0], xb[1], yb[1]
+                    if minx <= x <= maxx and miny <= y <= maxy:
+                        stress_columns[xb][yb].append((x, y, z, stress))
+
+        print(f'Created {len(stress_columns)**2} stress columns, {len(stress_columns)} x-bounds')
+        print(f'{self.fea_results.xs.shape[0] - sum([len(i) for i in stress_columns.values()])} stress values unused')
+
+        self.fea_results.stress_columns = stress_columns
+        return stress_columns
+
+
+
 
     def _slicer_task_pathing(self):
         prime_nozls = [self.conf['default_nozzle']];

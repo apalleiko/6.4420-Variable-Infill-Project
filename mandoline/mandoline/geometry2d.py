@@ -247,7 +247,7 @@ def make_square(rect):
     return (minx, miny, maxx, maxy)
 
 
-def make_infill_variable(rect, fea_results, layer, ewidth, min_dense, max_dense):
+def make_infill_variable(rect, fea_results, layer, ewidth, min_dense, max_dense, layer_z):
     minx, miny, maxx, maxy = make_square(rect)
 
     ori_T = np.array([[0, 1, 2, 3]])
@@ -271,8 +271,11 @@ def make_infill_variable(rect, fea_results, layer, ewidth, min_dense, max_dense)
     #                                        [5, -5, 0]]),
     #                     'stresses': [0.9, 0.1, 0.5, 0.73]}
 
+    # Create and refine mesh based on fea results
     ori_mesh = msh.Mesh2D(elm=ori_T, vert=ori_P)
-    refined_mesh = refine_layer(min_dense, max_dense, ori_mesh, fea_results, layer, ewidth, testing=testing)
+    refined_mesh = refine_layer(min_dense, max_dense, ori_mesh, fea_results, layer, ewidth, layer_z, testing=testing)
+
+    # Create lines based on refined mesh to be pathed
     out = []
     line_pairs = [(0, 1), (0, 3), (1, 2), (2, 3)]
     for quad in refined_mesh.elm:
@@ -286,6 +289,8 @@ def make_infill_variable(rect, fea_results, layer, ewidth, min_dense, max_dense)
                     )
 
             out.append(line)
+
+    # TODO make a line consolidation function
 
     if testing:
         plot_lines(out)
@@ -303,6 +308,7 @@ def plot_lines(lines):
     fig.show()
     input('Waiting (lines)')
     return fig, ax
+
 
 def plot_mesh(mesh, layer_stress):
     fig, ax = plt.subplots()
@@ -323,6 +329,7 @@ def plot_mesh(mesh, layer_stress):
     input('Waiting (mesh)')
     return fig, ax
 
+
 def highlight_quad(rect, fig, ax):
     minx, miny, maxx, maxy = rect
     point = (minx, miny)
@@ -336,15 +343,17 @@ def highlight_quad(rect, fig, ax):
     return fig, ax, rt
 
 
-def refine_layer(min_dense, max_dense, mesh, fea_results, layer, ewidth, testing):
+def refine_layer(min_dense, max_dense, mesh, fea_results, layer, ewidth, layer_z, testing):
     layer_stress = fea_results.fea_map[layer].copy()
-    layer_stress['normalized_stresses'] = fea_results.get_normalized_layer_stresses(layer)
 
+    # Toggle column sampling
     sample_column = True
+    layer_stress['normalized_stresses'] = fea_results.get_normalized_layer_stresses(layer)
 
     T, V = np.copy(mesh.elm), np.copy(mesh.vert)
     to_refine = []
 
+    # Get spacing based on density params
     min_sp = density2space(max_dense, ewidth)
     max_sp = density2space(min_dense, ewidth)
 
@@ -383,7 +392,7 @@ def refine_layer(min_dense, max_dense, mesh, fea_results, layer, ewidth, testing
 
             # Sample the stress, and refine if it is too big
             if sample_column:
-                max_stress = sample_column_stress(fea_results, (minx, miny, maxx, maxy))
+                max_stress = sample_column_stress(fea_results, (minx, miny, maxx, maxy), layer_z)
             else:
                 max_stress = sample_stress(layer_stress, (minx, miny, maxx, maxy))
 
@@ -408,7 +417,7 @@ def refine_layer(min_dense, max_dense, mesh, fea_results, layer, ewidth, testing
 
     if to_refine:
         new_mesh = msh.non_conforming_refinement(mesh, to_refine)
-        return refine_layer(min_dense, max_dense, new_mesh, fea_results, layer, ewidth, testing)
+        return refine_layer(min_dense, max_dense, new_mesh, fea_results, layer, ewidth, layer_z, testing)
 
     return mesh
 
@@ -426,16 +435,22 @@ def sample_stress(layer_stress, rect):
 
     return max_stress
 
+
 # TODO
-def sample_column_stress(fea_results, rect):
+def sample_column_stress(fea_results, rect, layer_z):
     "Return max stress in a given rectangle of a stress layer"
     minx, miny, maxx, maxy = rect
     max_stress = 0
-    for i in range(fea_results.xs.shape[0]):
-        x, y, z = fea_results.xs[i], fea_results.ys[i], fea_results.zs[i]
-        n_stress = fea_results.normalized_stresses[i]
-        if minx <= x <= maxx and miny <= y <= maxy and n_stress > max_stress:
-            max_stress = n_stress
+    # First index by x-bounds
+    for xb in fea_results.stress_columns.keys():
+        if not (minx > xb[1] or maxx < xb[0]):
+            # index by y bound next
+            for yb in fea_results.stress_columns[xb].keys():
+                if not (miny > yb[1] or maxy < yb[0]):
+                    # Now look into the stress vertices
+                    for x, y, z, n_stress in fea_results.stress_columns[xb][yb]:
+                        if minx <= x <= maxx and miny <= y <= maxy and n_stress > max_stress and z >= layer_z:
+                            max_stress = n_stress
 
     return max_stress
 
