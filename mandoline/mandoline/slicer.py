@@ -651,10 +651,9 @@ class Slicer(object):
                     if minx <= x <= maxx and miny <= y <= maxy:
                         stress_columns[xb][yb].append((x, y, z, stress))
 
-        print(f'Created {len(stress_columns)**2} stress columns, {len(stress_columns)} x-bounds')
-        print(f'{self.fea_results.xs.shape[0] - sum([len(i) for i in stress_columns.values()])} stress values unused')
-
+        print(f'Created {len(stress_columns)**2} stress columns')
         self.fea_results.stress_columns = stress_columns
+        
         return stress_columns
 
 
