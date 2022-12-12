@@ -297,6 +297,57 @@ def make_infill_variable(rect, fea_results, layer, ewidth, min_dense, max_dense,
 
     return out
 
+def consolidate_lines(lines):
+    verticals = dict() # map y value (constant) to x value tuples
+    horizontals = dict() # map x value (constant) to y value tuples
+
+    # preprocessing
+    for l in lines:
+        X = [l[0][0], l[1][0]]
+        Y = [l[0][1], l[1][1]]
+
+        if X[0] == X[1]: # vertical
+            if Y in verticals:
+                verticals[Y].append(X)
+            else:
+                verticals[Y] = [X]
+        else: # must be horizontal
+            if Y in verticals:
+                horizontals[X].append(Y)
+            else:
+                horizontals[X] = [X]
+
+    # merge overlapping intervals for vertical and horizontal
+    for k in verticals:
+        temp = merge_intervals(verticals[k])
+        verticals[k] = temp
+
+    for k in horizontals:
+        temp = merge_intervals(horizontals[k])
+        horizontals[k] = temp
+
+    # create new lines array based on merge
+    updated_lines = []
+    for k in verticals:
+        for inter in verticals[k]:
+            updated_lines.append([k, inter])
+    for k in horizontals:
+        for inter in horizontals[k]:
+            updated_lines.append([inter, k])
+
+    # return merged lines
+    return updated_lines
+
+def merge_intervals(intervals): #takes in an array of intervals and merges the overlapping intervals
+    intervals.sort(key=lambda interval: interval[0])
+    merged = [intervals[0]]
+    for current in intervals:
+        previous = merged[-1]
+        if current[0] <= previous[1]:
+            previous[1] = max(previous[1], current[1])
+        else:
+            merged.append(current)
+    return merged
 
 def plot_lines(lines):
     fig, ax = plt.subplots()
