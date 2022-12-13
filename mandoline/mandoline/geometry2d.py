@@ -290,7 +290,7 @@ def make_infill_variable(rect, fea_results, layer, ewidth, min_dense, max_dense,
 
             out.append(line)
 
-    # TODO make a line consolidation function
+    out = consolidate_lines(out)
 
     if testing:
         plot_lines(out)
@@ -299,21 +299,21 @@ def make_infill_variable(rect, fea_results, layer, ewidth, min_dense, max_dense,
 
 
 def consolidate_lines(lines):
-    verticals = dict()  # map y value (constant) to x value tuples
-    horizontals = dict()  # map x value (constant) to y value tuples
+    verticals = dict() # map y value (constant) to x value tuples
+    horizontals = dict() # map x value (constant) to y value tuples
 
     # preprocessing
     for l in lines:
         X = (l[0][0], l[1][0])
         Y = (l[0][1], l[1][1])
 
-        if X[0] == X[1]:  # vertical
+        if X[0] == X[1]: # vertical
             if X in verticals:
                 verticals[X].append(list(Y))
             else:
                 verticals[X] = [list(Y)]
 
-        else:  # must be horizontal
+        else: # must be horizontal
             if Y in horizontals:
                 horizontals[Y].append(list(X))
             else:
@@ -332,10 +332,10 @@ def consolidate_lines(lines):
     updated_lines = []
     for k in verticals:
         for inter in verticals[k]:
-            updated_lines.append([list(k), inter])
+            updated_lines.append([[k[0], inter[0]], [k[1], inter[1]]])
     for k in horizontals:
         for inter in horizontals[k]:
-            updated_lines.append([inter, list(k)])
+            updated_lines.append([[inter[0], k[0]], [inter[1], k[1]]])
 
     # return merged lines
     return updated_lines
