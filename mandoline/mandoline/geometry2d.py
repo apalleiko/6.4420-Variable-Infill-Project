@@ -297,25 +297,27 @@ def make_infill_variable(rect, fea_results, layer, ewidth, min_dense, max_dense,
 
     return out
 
+
 def consolidate_lines(lines):
-    verticals = dict() # map y value (constant) to x value tuples
-    horizontals = dict() # map x value (constant) to y value tuples
+    verticals = dict()  # map y value (constant) to x value tuples
+    horizontals = dict()  # map x value (constant) to y value tuples
 
     # preprocessing
     for l in lines:
-        X = [l[0][0], l[1][0]]
-        Y = [l[0][1], l[1][1]]
+        X = (l[0][0], l[1][0])
+        Y = (l[0][1], l[1][1])
 
-        if X[0] == X[1]: # vertical
-            if Y in verticals:
-                verticals[Y].append(X)
+        if X[0] == X[1]:  # vertical
+            if X in verticals:
+                verticals[X].append(list(Y))
             else:
-                verticals[Y] = [X]
-        else: # must be horizontal
-            if Y in verticals:
-                horizontals[X].append(Y)
+                verticals[X] = [list(Y)]
+
+        else:  # must be horizontal
+            if Y in horizontals:
+                horizontals[Y].append(list(X))
             else:
-                horizontals[X] = [X]
+                horizontals[Y] = [list(X)]
 
     # merge overlapping intervals for vertical and horizontal
     for k in verticals:
@@ -330,10 +332,10 @@ def consolidate_lines(lines):
     updated_lines = []
     for k in verticals:
         for inter in verticals[k]:
-            updated_lines.append([k, inter])
+            updated_lines.append([list(k), inter])
     for k in horizontals:
         for inter in horizontals[k]:
-            updated_lines.append([inter, k])
+            updated_lines.append([inter, list(k)])
 
     # return merged lines
     return updated_lines
